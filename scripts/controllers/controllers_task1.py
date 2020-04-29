@@ -1,4 +1,5 @@
-from utils import linear_vel
+from kinematics import wheels_velocities
+
 
 
 class Controller:
@@ -24,31 +25,6 @@ class OmniscientController(Controller):
     actual pose to the target one.
     """
 
-    @ staticmethod
-    def move_to_goal(state):
-        """
-        Moves the marXbot to the goal.
-        :param state
-        :return: speed
-        """
-
-        # VL = VR ➔ R = ∞
-        # there is effectively no rotation, ω=0
-        # Forward linear motion in a straight line
-        # • VL = -VR ➔ R = 0
-        # ICR coincides with P
-        # ω = -V/l
-        # Rotation about the midpoint of the wheel axis (in place rotation)
-        # • VL = 0 ➔ R = l (in the center of left wheel)
-        # ω = VR/2l
-        # Counterclockwise rotation about the left wheel
-        # • VR = 0 ➔ R = -l (in the center of right wheel)
-        # ω = -VL/2l
-        # Clockwise rotation about the right wheel
-        # FIXME
-        speed = min(max(-30, linear_vel(state)), 30)
-        return speed
-
     def perform_control(self, state, dt):
         """
         Move the robots using the omniscient controller by setting the target {left,right} wheel speed
@@ -60,9 +36,9 @@ class OmniscientController(Controller):
         :param state
         :param dt
         """
-        speed = self.move_to_goal(state)
+        left_vel, right_vel = wheels_velocities(state, min_vel=-30, max_vel=30)
 
-        return speed
+        return left_vel, right_vel
 
 
 class LearnedController(Controller):

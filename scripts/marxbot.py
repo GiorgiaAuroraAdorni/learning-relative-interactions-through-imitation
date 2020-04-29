@@ -35,4 +35,7 @@ class MyMarxbot(pyenki.Marxbot):
         :param dt: control step duration
         """
 
-        speed = self.controller.perform_control(self, dt)
+        left_vel, right_vel = self.controller.perform_control(self, dt)
+
+        self.left_wheel_target_speed = left_vel
+        self.right_wheel_target_speed = right_vel
