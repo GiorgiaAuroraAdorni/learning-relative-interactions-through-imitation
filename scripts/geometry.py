@@ -120,6 +120,20 @@ class Point(Vector):
         """Points transform contravariantly with regard to an homography."""
         return H @ self
 
+    def to_euclidean(self, assumeNormalized=False):
+        """
+        Returns the coordinates of the points in Euclidean coordinates.
+
+        :param assumeNormalized: if True, avoid normalizing already-normalized points.
+        :return: array containing the Euclidean coordinates [x, y].
+        """
+        coords = self
+
+        if not assumeNormalized:
+            coords /= coords[2]
+
+        return coords[:2]
+
 
 # Well-known points
 Point.ORIGIN = Point([0, 0, 1])
