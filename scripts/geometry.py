@@ -1,7 +1,6 @@
-from typing import overload
+from copy import deepcopy
 
 import numpy as np
-from copy import deepcopy
 
 
 class Geometry:
@@ -87,6 +86,7 @@ class Vector(np.ndarray, Geometry):
     in the hierarchy and to add a convenience constructor that behaves like
     `numpy.asarray(...)`.
     """
+
     def __new__(cls, *args, **kwargs):
         """
         Create an instance of the specified class, initialized with the content
@@ -110,6 +110,19 @@ class Vector(np.ndarray, Geometry):
 
 class Point(Vector):
     """One or more points expressed in homogeneous coordinates. Expected shape: 3⨉n."""
+
+    @staticmethod
+    def from_polar(r, theta):
+        """
+        Returns the Cartesian coordinates of the point.
+        :param r: distance
+        :param theta: angle
+        :return: a point expressed with cartesian coordinates
+        """
+        x = r * np.cos(theta)
+        y = r * np.sin(theta)
+
+        return Point([x, y, 1])
 
     @staticmethod
     def intersecting(l1, l2):
@@ -154,9 +167,9 @@ class Transform(Vector):
         s, c = np.sin(theta), np.cos(theta)
 
         return Transform([
-            [ c, +s, 0],
-            [-s,  c, 0],
-            [ 0,  0, 1],
+            [c, +s, 0],
+            [-s, c, 0],
+            [0, 0, 1],
         ])
 
     @staticmethod
@@ -164,5 +177,5 @@ class Transform(Vector):
         return Transform([
             [1, 0, tx],
             [0, 1, ty],
-            [0, 0,  1],
+            [0, 0, 1],
         ])
