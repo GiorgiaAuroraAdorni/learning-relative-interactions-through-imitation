@@ -1,6 +1,5 @@
-from copy import deepcopy
-
 import numpy as np
+from copy import deepcopy
 
 
 class Geometry:
@@ -52,7 +51,7 @@ class Geometry:
 
         return out
 
-    def warped(self, H):
+    def transformed(self, H):
         """
         Returns a deep copy of this geometric entity, transformed by the
         supplied transformation, H.
@@ -60,7 +59,7 @@ class Geometry:
         At the moment only homographies, represented as 3⨉3 matrices, are supported.
 
         The default implementation simply makes a deep copy of `self` and
-        applies `warped(H)` recursively to all of its children.
+        applies `transformed(H)` recursively to all of its children.
 
         Subclasses that represent "concrete" entities (as opposed to simply
         being collections of other entities) should override this method to also
@@ -73,7 +72,7 @@ class Geometry:
 
         for key, child in copy.children().items():
             if isinstance(child, Geometry):
-                setattr(copy, key, child.warped(H))
+                setattr(copy, key, child.transformed(H))
 
         return copy
 
@@ -112,6 +111,17 @@ class Point(Vector):
     """One or more points expressed in homogeneous coordinates. Expected shape: 3⨉n."""
 
     @staticmethod
+    def from_list(points):
+        """
+        Create a Point object from the most natural way of expressing it,
+        converting it to the right shape.
+
+        :param points: iterable of points. Expected shape: n⨉3
+        :return: a Point object with the correct shape
+        """
+        return Point(points).T
+
+    @staticmethod
     def from_polar(r, theta):
         """
         Returns the Cartesian coordinates of the point.
@@ -129,16 +139,16 @@ class Point(Vector):
         """Returns the intersection point(s) of the given pair(s) of lines."""
         return np.cross(l1, l2, axis=0).view(Point)
 
-    def warped(self, H):
+    def transformed(self, H):
         """Points transform contravariantly with regard to an homography."""
         return H @ self
 
-    def to_euclidean(self, assumeNormalized=False):
+    def to_euclidean(self, *, assumeNormalized=False):
         """
         Returns the coordinates of the points in Euclidean coordinates.
 
         :param assumeNormalized: if True, avoid normalizing already-normalized points.
-        :return: array containing the Euclidean coordinates [x, y].
+        :return: `numpy.ndarray` containing the Euclidean coordinates [x, y].
         """
         coords = self
 
@@ -162,14 +172,16 @@ class Transform(Vector):
     # priority, so that Transform @ Point returns a Point as expected.
     __array_priority__ = -1.0
 
+    identity = np.eye(3)
+
     @staticmethod
     def rotate(theta):
         s, c = np.sin(theta), np.cos(theta)
 
         return Transform([
-            [c, +s, 0],
-            [-s, c, 0],
-            [0, 0, 1],
+            [ c, -s, 0],
+            [+s,  c, 0],
+            [ 0,  0, 1],
         ])
 
     @staticmethod
@@ -177,5 +189,5 @@ class Transform(Vector):
         return Transform([
             [1, 0, tx],
             [0, 1, ty],
-            [0, 0, 1],
+            [0, 0,  1],
         ])
