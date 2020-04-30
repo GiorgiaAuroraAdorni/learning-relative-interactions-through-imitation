@@ -119,7 +119,11 @@ class Point(Vector):
         :param points: iterable of points. Expected shape: n⨉3
         :return: a Point object with the correct shape
         """
-        return Point(points).T
+        return np.stack(list(points), axis=-1).view(Point)
+
+    @staticmethod
+    def from_euclidean(x, y):
+        return Point([x, y, 1])
 
     @staticmethod
     def from_polar(r, theta):
@@ -132,7 +136,7 @@ class Point(Vector):
         x = r * np.cos(theta)
         y = r * np.sin(theta)
 
-        return Point([x, y, 1])
+        return Point.from_euclidean(x, y)
 
     @staticmethod
     def intersecting(l1, l2):
@@ -191,3 +195,8 @@ class Transform(Vector):
             [0, 1, ty],
             [0, 0,  1],
         ])
+
+    @staticmethod
+    def pose_transform(position, orientation):
+        return Transform.translate(*position) @ Transform.rotate(orientation)
+
