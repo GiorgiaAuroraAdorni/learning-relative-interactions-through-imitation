@@ -50,7 +50,7 @@ class GenerateSimulationData:
         for s in tqdm(range(simulations)):
             try:
                 cls.init_positions(marxbot, d_object, marxbot_distances, s)
-                cls.run(args.gui)
+                cls.run(world, args.gui)
             except Exception as e:
                 print('ERROR: ', e)
 
@@ -108,8 +108,8 @@ class GenerateSimulationData:
         point_G = Point.from_polar(r, theta)
 
         # Transform the cartesian coordinates from the goal to the world reference frame
-        trasform_W_D = Transform.rotate(d_object.angle) @ Transform.translate(*d_object.position)
         trasform_D_G = Transform.translate(increment, 0)
+        trasform_W_D = Transform.pose_transform(d_object.position, d_object.angle)
         point_W = trasform_W_D @ trasform_D_G @ point_G
 
         marxbot.initial_position = tuple(Point.to_euclidean(point_W))
