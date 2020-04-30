@@ -1,6 +1,4 @@
-import json
 import os
-import pickle
 import re
 from typing import List, Dict
 
@@ -63,7 +61,7 @@ class GenerateSimulationData:
                 df = pd.DataFrame(run_states)
                 df['run'] = n
 
-                dataset_states = dataset_states.append(df)
+                dataset_states = dataset_states.append(df, ignore_index=True)
             except Exception as e:
                 print('ERROR: ', e)
 
@@ -135,7 +133,6 @@ class GenerateSimulationData:
 
         marxbot.goal_reached = False
 
-
     @classmethod
     def generate_dict(cls, marxbot):
         """
@@ -177,15 +174,11 @@ class GenerateSimulationData:
         :param dataframe:
         :param runs_dir:
         """
-        pkl_file = os.path.join(runs_dir, 'simulation.pkl')
-        # json_file = os.path.join(runs_dir, 'simulation.json')
+        pkl_file = os.path.join(runs_dir, 'simulation.pkl.gz')
+        json_file = os.path.join(runs_dir, 'simulation.json.gz')
 
-        with open(pkl_file, 'wb') as f:
-            pickle.dump(dataframe, f)
-
-        # with open(json_file, 'w', encoding='utf-8') as f:
-        #     json.dump(dataframe, f, ensure_ascii=False, indent=4)
-
+        dataframe.to_pickle(pkl_file, protocol=4)
+        dataframe.to_json(json_file, orient='columns')
 
     @classmethod
     def run(cls, marxbot,
