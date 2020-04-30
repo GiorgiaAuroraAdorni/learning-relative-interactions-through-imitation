@@ -189,7 +189,7 @@ class GenerateSimulationData:
 
     @classmethod
     def run(cls, marxbot,
-            world: pyenki.World, gui: bool = False, T: float = 2, dt: float = 0.1, tol: float = 0.1) -> List[Dict]:
+            world: pyenki.World, gui: bool = False, T: float = 10, dt: float = 0.1, tol: float = 0.1) -> List[Dict]:
         """
         Run the simulation as fast as possible or using the real time GUI.
         :param marxbot
@@ -209,22 +209,16 @@ class GenerateSimulationData:
             run_states = []
             step_state = cls.generate_dict(marxbot)
 
-            stop_iteration = False
-
             for s in range(steps):
-                if stop_iteration:
+                world.step(dt)
+
+                cls.update_dict(step_state, marxbot)
+                step_state["step"] = s
+
+                run_states.append(step_state.copy())
+
+                # Check if the robot has reached the target
+                if marxbot.goal_reached:
                     break
-
-                if s > 0:
-                    cls.update_dict(step_state, marxbot)
-                    step_state["step"] = s
-
-                    run_states.append(step_state.copy())
-
-                    # Check if the robot has reached the target
-                    if marxbot.goal_reached:
-                        stop_iteration = True
-
-                    world.step(dt)
 
             return run_states

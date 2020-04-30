@@ -49,10 +49,10 @@ class OmniscientController(Controller):
             lin_vel = linear_velocity(state, self.max_vel)
         elif angle_error > angle_tolerance:
             ang_vel = angular_velocity_inplace(state)
-            lin_vel = 0
+            lin_vel = 0.0
         else:
-            ang_vel = 0
-            lin_vel = 0
+            ang_vel = 0.0
+            lin_vel = 0.0
             state.goal_reached = True
 
         left_vel, right_vel = wheels_velocities(lin_vel, ang_vel, self.max_vel)
