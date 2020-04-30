@@ -1,4 +1,5 @@
-from kinematics import wheels_velocities
+from kinematics import wheels_velocities, euclidean_distance, angular_velocity_inplace, angular_velocity, \
+    linear_velocity, angle_difference
 
 
 class Controller:
@@ -23,6 +24,9 @@ class OmniscientController(Controller):
     the robots, the omniscient control moves the robots at a constant speed, calculating the distance from the
     actual pose to the target one.
     """
+    def __init__(self):
+        super().__init__()
+        self.max_vel = 30
 
     def perform_control(self, state, dt):
         """
@@ -35,7 +39,22 @@ class OmniscientController(Controller):
         :param state
         :param dt
         """
-        left_vel, right_vel = wheels_velocities(state, min_vel=-30, max_vel=30)
+        distance_error = euclidean_distance(state.goal_position, state.position)
+        dist_tolerance = 0.1
+        angle_error = abs(angle_difference(state.goal_angle, state.angle))
+        angle_tolerance = 0.005
+
+        if distance_error > dist_tolerance:
+            ang_vel = angular_velocity(state)
+            lin_vel = linear_velocity(state, self.max_vel)
+        elif angle_error > angle_tolerance:
+            ang_vel = angular_velocity_inplace(state)
+            lin_vel = 0
+        else:
+            ang_vel = 0
+            lin_vel = 0
+
+        left_vel, right_vel = wheels_velocities(lin_vel, ang_vel, self.max_vel)
 
         return left_vel, right_vel
 
@@ -45,8 +64,8 @@ class LearnedController(Controller):
     The robots can be moved following a controller learned by a neural network.
     """
 
-    def __init__(self, net, net_input, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, net, net_input):
+        super().__init__()
 
         self.net = net
         if self.net is None:

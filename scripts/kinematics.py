@@ -1,12 +1,15 @@
 import numpy as np
 
 
-def euclidean_distance(state):
+def euclidean_distance(position1, position2):
     """
     :return: Euclidean distance between current pose and the goal pose
     """
-    return np.sqrt(pow((state.goal_position[0] - state.position[0]), 2) +
-                   pow((state.goal_position[1] - state.position[1]), 2))
+    x1, y1 = position1
+    x2, y2 = position2
+
+    return np.sqrt(pow((x2 - x1), 2) +
+                   pow((y2 - y1), 2))
 
 
 def signed_distance(state):
@@ -19,54 +22,36 @@ def signed_distance(state):
     return b - a
 
 
-def linear_velocity(state, min_vel, max_vel, constant=4):
+def linear_velocity(state, max_vel, constant=4):
     """
     :param state
+    :param max_vel
     :param constant
     :return: linear velocity
     """
-    # velocity = constant * euclidean_distance(state)
     velocity = constant * signed_distance(state)
-    velocity = min(max(min_vel/1.5, velocity), max_vel/1.5)
+    velocity = np.clip(velocity, -max_vel/1.5, max_vel/1.5)
+
     return velocity
 
 
-def angular_difference(state):
+def angle_difference(alpha, beta):
     """
-    :param state:
-    :return: the difference between the current angle and the goal angle
+    :return: the difference between two angles alpha and beta.
     """
-    return np.arctan2(np.sin(state.goal_angle - state.agle), np.cos(state.goal_angle - state.agle))
+    return np.arctan2(np.sin(alpha - beta), np.cos(alpha - beta))
 
 
-def angular_velocity_rotation(state, constant=1):
+def angular_velocity_inplace(state, constant=1):
     """
     :param state:
     :param constant:
     :return: the angular velocity computed using the angle difference
     """
-    return constant * angular_difference(state)
+    return constant * angle_difference(state.goal_angle, state.angle)
 
 
 def steering_angle(state):
-    """
-    :param state:
-    :return: steering angle
-    """
-    return np.arctan2(state.goal_position[1] - state.position[1], state.goal_position[0] - state.position[0])
-
-
-def angular_velocity(state, constant=4):
-    """
-    :param state:
-    :param constant:
-    :return: angular velocity
-    """
-    return constant * np.arctan2(np.sin(steering_angle(state) - state.angle),
-                                 np.cos(steering_angle(state) - state.angle))
-
-
-def get_angle(state):
     """Returns angle of the vector from pose to goal.
     :param state
     :return:
@@ -77,36 +62,33 @@ def get_angle(state):
     return np.arctan2(goal_y - pose_y, goal_x - pose_x)
 
 
-def icr_angular_velocity(state):
+def angular_velocity(state, constant=1):
     """
     :param state:
+    :param constant
     :return: angular velocity
     """
-    # compute angle of vector from turtle to goal
-    angle = get_angle(state)
-    delta_angle = angle - state.angle
+    delta_angle = angle_difference(steering_angle(state), state.angle)
+    # Extract perpendicular component to handle the case when the robot orientation is 0 and to reach the target
+    # position it is necessary to go backward.
+    delta_angle = np.sin(delta_angle)
 
-    return np.sin(delta_angle)
+    return constant * delta_angle
 
 
-def wheels_velocities(state, min_vel=-np.inf, max_vel=np.inf, wheel_distance=15):
+def wheels_velocities(lin_vel, ang_vel, max_vel=np.inf, wheel_distance=15):
     """
-
-    :param state:
-    :param min_vel
+    :param lin_vel
+    :param ang_vel
     :param max_vel
     :param wheel_distance:
     :return left_wheel_target_speed, right_wheel_target_speed
     """
 
-    # ang_vel = angular_velocity(state)
-    ang_vel = icr_angular_velocity(state)
-    lin_vel = linear_velocity(state, min_vel, max_vel)
+    left_wheel_target_speed = lin_vel - wheel_distance * ang_vel
+    right_wheel_target_speed = lin_vel + wheel_distance * ang_vel
 
-    left_wheel_target_speed = lin_vel + wheel_distance * ang_vel
-    right_wheel_target_speed = lin_vel - wheel_distance * ang_vel
-
-    left_wheel_target_speed = min(max(min_vel, left_wheel_target_speed), max_vel)
-    right_wheel_target_speed = min(max(min_vel, right_wheel_target_speed), max_vel)
+    left_wheel_target_speed = np.clip(left_wheel_target_speed, -max_vel, max_vel)
+    right_wheel_target_speed = np.clip(right_wheel_target_speed, -max_vel, max_vel)
 
     return left_wheel_target_speed, right_wheel_target_speed
