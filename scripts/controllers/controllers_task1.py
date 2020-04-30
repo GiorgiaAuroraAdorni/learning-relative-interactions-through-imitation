@@ -1,7 +1,6 @@
 from kinematics import wheels_velocities
 
 
-
 class Controller:
 
     def perform_control(self, state, dt):
