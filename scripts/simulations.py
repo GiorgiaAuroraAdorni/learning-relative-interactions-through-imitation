@@ -18,7 +18,7 @@ class GenerateSimulationData:
     def generate_simulation(cls, simulations, controller, args, model_dir=None, model=None):
         """
 
-        :param simulations:
+        :param simulations: FIXME name
         :param controller:
         :param model_dir:
         :param args:
@@ -38,6 +38,7 @@ class GenerateSimulationData:
 
         # Generate random polar coordinates to define the area in which the marXbot can spawn, in particular
         # theta ∈ [-π/2, π/2] and r ∈ [d_object.radius/2, maximum_gap *2]
+        # FIXME rename
         maximum_gap = 150  # corresponds to the proximity sensors maximal range
 
         r = np.random.uniform(d_object.radius * 2, maximum_gap * 2, simulations)
@@ -45,11 +46,11 @@ class GenerateSimulationData:
         # The angle is chose randomly in all its possible realisations
         angle = np.random.uniform(0, 2 * np.pi, simulations)
 
-        marxbot_distances = np.array([r, theta, angle]).T.reshape(-1, 3)
+        marxbot_rel_poses = np.array([r, theta, angle]).T.reshape(-1, 3)
 
         for s in tqdm(range(simulations)):
             try:
-                cls.init_positions(marxbot, d_object, marxbot_distances, s)
+                cls.init_positions(marxbot, d_object, marxbot_rel_poses[s])
                 cls.run(world, args.gui)
             except Exception as e:
                 print('ERROR: ', e)
@@ -85,17 +86,17 @@ class GenerateSimulationData:
         return world, marxbot, d_object
 
     @classmethod
-    def init_positions(cls, marxbot, d_object, distances, simulation, min_distance=8.5):
+    def init_positions(cls, marxbot, d_object, marxbot_rel_pose, min_distance=8.5):
         """
         :param marxbot
         :param d_object
-        :param distances: contains r, theta and angle that are the random polar coordinates for the marxbot
-        :param simulation
+        :param marxbot_rel_pose: initial pose of the marxbot, relative to the goal pose, expressed as r, theta and
+                                 angle, that is position in polar coordinates and orientation
         :param min_distance: the minimum distance between the marXbot and any object, that correspond to the radius
                              of the marXbot, is 8.5 cm.
         """
-        # The goal pose of the marXbot is a on the same y-axis of the d_object and with the x-axis translated of the
-        # radius of the d_object plus a small arbitrary distance, with respect to the d_object.
+        # The goal pose of the marXbot, defined with respect to the docking station reference frame, has the same y-axis
+        # of the docking station and the x-axis translated of the radius of the d_object plus a small arbitrary distance.
         # The goal angle of the marXbot is 180 degree (π).
         increment = d_object.radius + min_distance
         x_goal = d_object.position[0] + increment
@@ -103,8 +104,8 @@ class GenerateSimulationData:
         marxbot.goal_position = (x_goal, y_goal)
         marxbot.goal_angle = np.pi
 
-        # Transform the distance from polar coordinates to cartesian coordinates
-        r, theta, angle = distances[simulation]
+        # Transform the initial pose, relative to the goal, from polar to cartesian coordinates
+        r, theta, angle = marxbot_rel_pose
         point_G = Point.from_polar(r, theta)
 
         # Transform the cartesian coordinates from the goal to the world reference frame
@@ -117,8 +118,6 @@ class GenerateSimulationData:
 
         marxbot.initial_angle = angle
         marxbot.angle = marxbot.initial_angle
-
-        marxbot.dictionary = None
 
     @classmethod
     def run(cls, world: pyenki.World, gui: bool = False, T: float = 2, dt: float = 0.1, tol: float = 0.1) -> None:

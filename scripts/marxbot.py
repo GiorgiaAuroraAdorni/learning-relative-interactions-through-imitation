@@ -25,8 +25,6 @@ class MyMarxbot(pyenki.Marxbot):
         self.goal_position = None
         self.goal_angle = None
 
-        self.dictionary = None
-
     def controlStep(self, dt: float) -> None:
         """
         Perform one control step:
