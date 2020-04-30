@@ -1,13 +1,18 @@
+import json
+import os
+import pickle
 import re
+from typing import List, Dict
 
 import numpy as np
+import pandas as pd
 import pyenki
 import torch
 from tqdm import tqdm
 
 from controllers import controllers_task1
-from marxbot import MyMarxbot
 from geometry import Point, Transform
+from marxbot import MyMarxbot
 
 
 class GenerateSimulationData:
@@ -15,10 +20,11 @@ class GenerateSimulationData:
     LEARNED_CONTROLLER = r"^learned-controller-net\d"
 
     @classmethod
-    def generate_simulation(cls, simulations, controller, args, model_dir=None, model=None):
+    def generate_simulation(cls, runs_dir, n_simulations, controller, args, model_dir=None, model=None):
         """
 
-        :param simulations: FIXME name
+        :param runs_dir
+        :param n_simulations:
         :param controller:
         :param model_dir:
         :param args:
@@ -29,8 +35,8 @@ class GenerateSimulationData:
         elif re.match(cls.LEARNED_CONTROLLER, controller):
             net = torch.load('%s/%s' % (model_dir, model))
 
-            def controller_factory(**kwargs):
-                return controllers_task1.LearnedController(net=net, net_input=args.net_input, **kwargs)
+            def controller_factory():
+                return controllers_task1.LearnedController(net=net, net_input=args.net_input)
         else:
             raise ValueError("Invalid value for controller")
 
@@ -41,19 +47,27 @@ class GenerateSimulationData:
         # FIXME rename
         maximum_gap = 150  # corresponds to the proximity sensors maximal range
 
-        r = np.random.uniform(d_object.radius * 2, maximum_gap * 2, simulations)
-        theta = np.random.uniform(-np.pi / 2, np.pi / 2, simulations)
+        r = np.random.uniform(d_object.radius * 2, maximum_gap * 2, n_simulations)
+        theta = np.random.uniform(-np.pi / 2, np.pi / 2, n_simulations)
         # The angle is chose randomly in all its possible realisations
-        angle = np.random.uniform(0, 2 * np.pi, simulations)
+        angle = np.random.uniform(0, 2 * np.pi, n_simulations)
 
         marxbot_rel_poses = np.array([r, theta, angle]).T.reshape(-1, 3)
 
-        for s in tqdm(range(simulations)):
+        dataset_states = pd.DataFrame()
+        for n in tqdm(range(n_simulations)):
             try:
-                cls.init_positions(marxbot, d_object, marxbot_rel_poses[s])
-                cls.run(world, args.gui)
+                cls.init_positions(marxbot, d_object, marxbot_rel_poses[n])
+                run_states = cls.run(marxbot, world, args.gui)
+
+                df = pd.DataFrame(run_states)
+                df['run'] = n
+
+                dataset_states = dataset_states.append(df)
             except Exception as e:
                 print('ERROR: ', e)
+
+        cls.save_dataset(dataset_states, runs_dir)
 
     @classmethod
     def setup(cls, controller_factory):
@@ -119,10 +133,66 @@ class GenerateSimulationData:
         marxbot.initial_angle = angle
         marxbot.angle = marxbot.initial_angle
 
+        marxbot.goal_reached = False
+
+
     @classmethod
-    def run(cls, world: pyenki.World, gui: bool = False, T: float = 2, dt: float = 0.1, tol: float = 0.1) -> None:
+    def generate_dict(cls, marxbot):
+        """
+        Save data in a step_state
+        :param marxbot
+        :return step_state:
+        """
+        step_state = {
+            'name': marxbot.name,
+            'initial_position': marxbot.initial_position,
+            'initial_angle': marxbot.initial_angle,
+            'goal_position': marxbot.goal_position,
+            'goal_angle': marxbot.goal_angle,
+        }
+
+        return step_state
+
+    @classmethod
+    def update_dict(cls, step_state, marxbot):
+        """
+        Updated data in the step_state instead of rewrite every field to optimise performances
+        :param step_state
+        :param marxbot
+        :return step_state
+        """
+
+        step_state['position'] = marxbot.position
+        step_state['angle'] = marxbot.angle
+        step_state['left_wheel_target_speed'] = marxbot.left_wheel_target_speed
+        step_state['right_wheel_target_speed'] = marxbot.right_wheel_target_speed
+        step_state['scanner_distances'] = marxbot.scanner_distances
+        step_state['scanner_image'] = marxbot.scanner_image
+        step_state['goal_reached'] = marxbot.goal_reached
+
+    @classmethod
+    def save_dataset(cls, dataframe, runs_dir):
+        """
+
+        :param dataframe:
+        :param runs_dir:
+        """
+        pkl_file = os.path.join(runs_dir, 'simulation.pkl')
+        # json_file = os.path.join(runs_dir, 'simulation.json')
+
+        with open(pkl_file, 'wb') as f:
+            pickle.dump(dataframe, f)
+
+        # with open(json_file, 'w', encoding='utf-8') as f:
+        #     json.dump(dataframe, f, ensure_ascii=False, indent=4)
+
+
+    @classmethod
+    def run(cls, marxbot,
+            world: pyenki.World, gui: bool = False, T: float = 2, dt: float = 0.1, tol: float = 0.1) -> List[Dict]:
         """
         Run the simulation as fast as possible or using the real time GUI.
+        :param marxbot
         :param world
         :param gui
         :param T
@@ -136,5 +206,25 @@ class GenerateSimulationData:
         else:
             steps = int(T // dt)
 
+            run_states = []
+            step_state = cls.generate_dict(marxbot)
+
+            stop_iteration = False
+
             for s in range(steps):
-                world.step(dt)
+                if stop_iteration:
+                    break
+
+                if s > 0:
+                    cls.update_dict(step_state, marxbot)
+                    step_state["step"] = s
+
+                    run_states.append(step_state.copy())
+
+                    # Check if the robot has reached the target
+                    if marxbot.goal_reached:
+                        stop_iteration = True
+
+                    world.step(dt)
+
+            return run_states

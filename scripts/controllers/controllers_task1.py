@@ -53,6 +53,7 @@ class OmniscientController(Controller):
         else:
             ang_vel = 0
             lin_vel = 0
+            state.goal_reached = True
 
         left_vel, right_vel = wheels_velocities(lin_vel, ang_vel, self.max_vel)
 

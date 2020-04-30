@@ -14,10 +14,10 @@ def Parse():
 
     parser.add_argument('--gui', action="store_true",
                         help='run simulation using the gui (default: False)')
-    parser.add_argument('--simulations', type=int, default=1000, metavar='N',
+    parser.add_argument('--n-simulations', type=int, default=1000, metavar='N',
                         help='number of runs for each simulation (default: 1000)')
     parser.add_argument('--generate-dataset', action="store_true",
-                        help='generate the dataset containing the simulations (default: False)')
+                        help='generate the dataset containing the n_simulations (default: False)')
     parser.add_argument('--plots-dataset', action="store_true",
                         help='generate the plots of regarding the dataset (default: False)')
     parser.add_argument('--check-dataset', action="store_true",
@@ -51,9 +51,6 @@ if __name__ == '__main__':
     runs_dir = os.path.join(args.dataset_folder)
     check_dir(runs_dir)
 
-    img_dir = os.path.join(runs_dir, 'images')
-    check_dir(img_dir)
-
     omniscient_controller = "omniscient-controller"
 
     runs_dir_omniscient = os.path.join(runs_dir, omniscient_controller)
@@ -64,5 +61,6 @@ if __name__ == '__main__':
 
     if args.controller == 'all' or args.controller == 'omniscient':
         if args.generate_dataset:
-            print('Generating simulations for %s…' % omniscient_controller)
-            sim.generate_simulation(simulations=args.simulations, controller=omniscient_controller, args=args)
+            print('Generating n_simulations for %s…' % omniscient_controller)
+            sim.generate_simulation(runs_dir, n_simulations=args.n_simulations, controller=omniscient_controller,
+                                    args=args)
