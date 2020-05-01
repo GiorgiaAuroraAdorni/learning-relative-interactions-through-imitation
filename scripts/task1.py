@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from plots import plot_distance_from_goal, plot_position_over_time, plot_goal_reached_distribution
+from plots import plot_distance_from_goal, plot_position_over_time, plot_goal_reached_distribution, plot_sensors
 from utils import check_dir
 from simulations import GenerateSimulationData as sim
 
@@ -71,8 +71,13 @@ if __name__ == '__main__':
 
             plot_position_over_time(runs_dir_omniscient, img_dir_omniscient,
                                     'Robot position over time - %s' % omniscient_controller,
-                                    'pose-over-time-s%s' % omniscient_controller)
+                                    'pose-over-time-%s' % omniscient_controller)
 
             plot_goal_reached_distribution(runs_dir_omniscient, img_dir_omniscient,
                                            'Distribution of the goal reached - %s' % omniscient_controller,
                                            'goal-reached-%s' % omniscient_controller)
+
+            plot_sensors(runs_dir_omniscient, img_dir_omniscient,
+                         'Laser scanner response over time - %s' % omniscient_controller,
+                         'laser-scanner-response-over-time-%s' % omniscient_controller)
+
