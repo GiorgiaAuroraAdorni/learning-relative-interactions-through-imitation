@@ -20,13 +20,9 @@ def Parse():
                         help='generate the dataset containing the n_simulations (default: False)')
     parser.add_argument('--plots-dataset', action="store_true",
                         help='generate the plots of regarding the dataset (default: False)')
-    parser.add_argument('--check-dataset', action="store_true",
-                        help='generate the plots that check the dataset conformity (default: False)')
-
     parser.add_argument('--controller', default='all', choices=['all', 'learned', 'omniscient'],
                         help='choose the controller for the current execution between all, learned, manual and '
                              'omniscient (default: all)')
-
     parser.add_argument('--dataset-folder', default='datasets/', type=str,
                         help='name of the directory containing the datasets (default: datasets/)')
 
@@ -62,5 +58,5 @@ if __name__ == '__main__':
     if args.controller == 'all' or args.controller == 'omniscient':
         if args.generate_dataset:
             print('Generating n_simulations for %s…' % omniscient_controller)
-            sim.generate_simulation(runs_dir, n_simulations=args.n_simulations, controller=omniscient_controller,
+            sim.generate_simulation(runs_dir_omniscient, n_simulations=args.n_simulations, controller=omniscient_controller,
                                     args=args)

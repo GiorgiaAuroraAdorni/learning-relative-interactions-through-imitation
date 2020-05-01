@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 from controllers import controllers_task1
 from geometry import Point, Transform
+from kinematics import euclidean_distance
 from marxbot import MyMarxbot
 
 
@@ -165,6 +166,7 @@ class GenerateSimulationData:
         step_state['scanner_distances'] = np.array(marxbot.scanner_distances)
         step_state['scanner_image'] = np.array(marxbot.scanner_image)
         step_state['goal_reached'] = marxbot.goal_reached
+        step_state['goal_distance'] = euclidean_distance(marxbot.goal_position, marxbot.position)
 
     @classmethod
     def save_dataset(cls, dataframe, runs_dir):
