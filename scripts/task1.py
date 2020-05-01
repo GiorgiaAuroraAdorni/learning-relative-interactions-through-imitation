@@ -1,6 +1,7 @@
 import argparse
 import os
 
+from plots import plot_distance_from_goal, plot_position_over_time
 from utils import check_dir
 from simulations import GenerateSimulationData as sim
 
@@ -60,3 +61,15 @@ if __name__ == '__main__':
             print('Generating n_simulations for %s…' % omniscient_controller)
             sim.generate_simulation(runs_dir_omniscient, n_simulations=args.n_simulations, controller=omniscient_controller,
                                     args=args)
+
+        if args.plots_dataset:
+            print('\nGenerating plots for %s…' % omniscient_controller)
+
+            plot_distance_from_goal(runs_dir_omniscient, img_dir_omniscient,
+                                    'Robot distance from goal - %s' % omniscient_controller,
+                                    'distances-from-goal-%s' % omniscient_controller)
+
+            plot_position_over_time(runs_dir_omniscient, img_dir_omniscient,
+                                    'Robot position over time - %s' % omniscient_controller,
+                                    'pose-over-time-s%s' % omniscient_controller)
+

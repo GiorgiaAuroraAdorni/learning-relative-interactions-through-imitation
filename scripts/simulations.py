@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from controllers import controllers_task1
 from geometry import Point, Transform
-from kinematics import euclidean_distance
+from kinematics import euclidean_distance, angle_difference
 from marxbot import MyMarxbot
 
 
@@ -66,7 +66,7 @@ class GenerateSimulationData:
                 print('ERROR: ', e)
 
         print(dataset_states.goal_reached.value_counts())
-        cls.save_dataset(dataset_states, runs_dir)
+        cls.save_dataset(dataset_states, runs_dir, controller)
 
     @classmethod
     def setup(cls, controller_factory):
@@ -166,15 +166,18 @@ class GenerateSimulationData:
         step_state['scanner_distances'] = np.array(marxbot.scanner_distances)
         step_state['scanner_image'] = np.array(marxbot.scanner_image)
         step_state['goal_reached'] = marxbot.goal_reached
-        step_state['goal_distance'] = euclidean_distance(marxbot.goal_position, marxbot.position)
+        step_state['goal_position_distance'] = euclidean_distance(marxbot.goal_position, marxbot.position)
+        step_state['goal_angle_distance'] = abs(angle_difference(marxbot.goal_angle, marxbot.angle))
 
     @classmethod
-    def save_dataset(cls, dataframe, runs_dir):
+    def save_dataset(cls, dataframe, runs_dir, controller):
         """
 
         :param dataframe:
         :param runs_dir:
         """
+        print('Saving dataset for %s…' % controller)
+
         pkl_file = os.path.join(runs_dir, 'simulation.pkl.gz')
         json_file = os.path.join(runs_dir, 'simulation.json.gz')
 
