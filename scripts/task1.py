@@ -73,3 +73,6 @@ if __name__ == '__main__':
                                     'Robot position over time - %s' % omniscient_controller,
                                     'pose-over-time-s%s' % omniscient_controller)
 
+            plot_goal_reached_distribution(runs_dir_omniscient, img_dir_omniscient,
+                                           'Distribution of the goal reached - %s' % omniscient_controller,
+                                           'goal-reached-%s' % omniscient_controller)
