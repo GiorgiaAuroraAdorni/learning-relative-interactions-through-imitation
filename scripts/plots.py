@@ -3,8 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-from utils import get_pos_sensing_control
+import seaborn as sns
 
 
 def save_visualisation(filename, img_dir, make_space=False, axes=None):
@@ -158,6 +157,36 @@ def plot_position_over_time(runs_dir, img_dir, title, filename):
     save_visualisation(filename, img_dir, make_space=True, axes=ax)
 
 
+def plot_goal_reached_distribution(runs_dir, img_dir, title, filename):
+    """
+
+    :param runs_dir:
+    :param img_dir:
+    :param title:
+    :param filename:
+    """
+
+    pickle_file = os.path.join(runs_dir, 'simulation.pkl.gz')
+    dataset_states = pd.read_pickle(pickle_file)
+
+    time_steps = np.arange(dataset_states['step'].max() + 1)
+
+    fig, ax = plt.subplots(figsize=(7.8, 4.8))
+    ax.set_xlabel('timestep', fontsize=11)
+    ax.set_ylabel('position', fontsize=11)
+
+    goal_reached = dataset_states.groupby(['step'])['goal_reached'].count()
+    sns.distplot(goal_reached, bins=time_steps, kde=False, ax=ax)
+    ax.set_xlim(0, dataset_states['step'].max() + 1)
+
+    fig.suptitle(title, fontsize=14, weight='bold')
+
+    fig.tight_layout()
+    fig.subplots_adjust(hspace=0.4)
+
+    save_visualisation(filename, img_dir, make_space=True, axes=ax)
+
+
 
     plt.plot(time_steps, x_mean, label='x mean')
     plt.fill_between(time_steps, x_mean - x_std, x_mean + x_std, alpha=0.2, label='x +/- 1 std')
@@ -169,3 +198,4 @@ def plot_position_over_time(runs_dir, img_dir, title, filename):
     plt.title(title, weight='bold', fontsize=14)
 
     save_visualisation(filename, img_dir)
+    plt.show()

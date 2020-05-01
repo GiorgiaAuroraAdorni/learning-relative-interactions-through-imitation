@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from plots import plot_distance_from_goal, plot_position_over_time
+from plots import plot_distance_from_goal, plot_position_over_time, plot_goal_reached_distribution
 from utils import check_dir
 from simulations import GenerateSimulationData as sim
 
