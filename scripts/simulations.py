@@ -1,14 +1,14 @@
 import os
 import re
-from typing import List, Dict
+from collections import defaultdict
 
 import numpy as np
-import pandas as pd
 import pyenki
 import torch
 from tqdm import tqdm
 
 from controllers import controllers_task1
+from dataset import DatasetBuilder
 from geometry import Point, Transform
 from kinematics import euclidean_distance, angle_difference
 from marxbot import MyMarxbot
@@ -52,21 +52,18 @@ class GenerateSimulationData:
 
         marxbot_rel_poses = np.array([r, theta, angle]).T.reshape(-1, 3)
 
-        dataset_states = pd.DataFrame()
+        builder = cls.init_dataset()
         for n in tqdm(range(n_simulations)):
             try:
+                template = builder.create_template(run=n)
+
                 cls.init_positions(marxbot, d_object, marxbot_rel_poses[n])
-                run_states = cls.run(marxbot, world, args.gui)
-
-                dataset_run = pd.DataFrame(run_states)
-                dataset_run['run'] = n
-
-                dataset_states = dataset_states.append(dataset_run, ignore_index=True)
+                cls.run(marxbot, world, builder, template, args.gui)
             except Exception as e:
                 print('ERROR: ', e)
 
-        print(dataset_states.goal_reached.value_counts())
-        cls.save_dataset(dataset_states, runs_dir, controller)
+        dataset = builder.finalize()
+        cls.save_dataset(dataset, runs_dir, controller)
 
     @classmethod
     def setup(cls, controller_factory):
@@ -134,65 +131,86 @@ class GenerateSimulationData:
         marxbot.goal_reached = False
 
     @classmethod
-    def generate_dict(cls, marxbot):
-        """
-        Save data in a step_state
-        :param marxbot
-        :return step_state:
-        """
-        step_state = {
-            'name': marxbot.name,
-            'initial_position': marxbot.initial_position,
-            'initial_angle': marxbot.initial_angle,
-            'goal_position': marxbot.goal_position,
-            'goal_angle': marxbot.goal_angle,
-        }
+    def init_dataset(cls):
+        return DatasetBuilder({
+            "name": (),
+            "initial_position": ("axis"),
+            "initial_angle": (),
+            "goal_position": ("axis"),
+            "goal_angle": (),
 
-        return step_state
+            "position": ("axis"),
+            "angle": (),
+            "wheel_target_speed": ("wheel"),
+            "scanner_distances": ("scanner_angle"),
+            "scanner_image": ("scanner_angle", "channel"),
 
-    @classmethod
-    def update_dict(cls, step_state, marxbot):
-        """
-        Updated data in the step_state instead of rewrite every field to optimise performances
-        :param step_state
-        :param marxbot
-        :return step_state
-        """
+            "goal_reached": (),
+            "goal_position_distance": (),
+            "goal_angle_distance": ()
 
-        step_state['position'] = marxbot.position
-        step_state['angle'] = marxbot.angle
-        step_state['left_wheel_target_speed'] = marxbot.left_wheel_target_speed
-        step_state['right_wheel_target_speed'] = marxbot.right_wheel_target_speed
-        step_state['scanner_distances'] = np.array(marxbot.scanner_distances)
-        step_state['scanner_image'] = np.array(marxbot.scanner_image)
-        step_state['goal_reached'] = marxbot.goal_reached
-        step_state['goal_position_distance'] = euclidean_distance(marxbot.goal_position, marxbot.position)
-        step_state['goal_angle_distance'] = abs(angle_difference(marxbot.goal_angle, marxbot.angle))
+        }, coords={
+            "run": (),
+            "step": (),
+
+            "axis": (..., ["x", "y"]),
+            "channel": (..., ["r", "g", "b"]),
+            "wheel": (..., ["l", "r"]),
+            "scanner_angle": (..., np.linspace(-np.pi, np.pi, 180))
+        })
 
     @classmethod
-    def save_dataset(cls, dataframe, runs_dir, controller):
+    def update_template_robot(cls, template: DatasetBuilder.Template, marxbot):
+        template.update(
+            name=marxbot.name,
+            initial_position=marxbot.initial_position,
+            initial_angle=marxbot.initial_angle,
+            goal_position=marxbot.goal_position,
+            goal_angle=marxbot.goal_angle
+        )
+
+    @classmethod
+    def update_template_step(cls, template: DatasetBuilder.Template, marxbot, step):
+        template.update(
+            step=step,
+            position=marxbot.position,
+            angle=marxbot.angle,
+            wheel_target_speed=[marxbot.left_wheel_target_speed, marxbot.right_wheel_target_speed],
+            scanner_distances=np.array(marxbot.scanner_distances),
+            scanner_image=np.array(marxbot.scanner_image),
+            goal_reached=marxbot.goal_reached,
+            goal_position_distance=euclidean_distance(marxbot.goal_position, marxbot.position),
+            goal_angle_distance=abs(angle_difference(marxbot.goal_angle, marxbot.angle))
+        )
+
+    @classmethod
+    def save_dataset(cls, dataset, runs_dir, controller):
         """
 
-        :param dataframe:
+        :param dataset:
         :param runs_dir:
+        :param controller:
         """
         print('Saving dataset for %s…' % controller)
 
         pkl_file = os.path.join(runs_dir, 'simulation.pkl.gz')
-        json_file = os.path.join(runs_dir, 'simulation.json.gz')
+        nc_file = os.path.join(runs_dir, 'simulation.nc')
 
-        dataframe.to_pickle(pkl_file, protocol=4)
-        dataframe.to_json(json_file, orient='index')
+        # FIXME: check how to compress file
+        # dataset.to_pickle(pkl_file, protocol=4)
+        dataset.to_netcdf(nc_file)
 
     @classmethod
-    def run(cls, marxbot: MyMarxbot, world: pyenki.World, gui: bool = False, T: float = 15, dt: float = 0.1) -> List[Dict]:
+    def run(cls, marxbot, world, builder, template, gui=False, T=15, dt=0.1):
         """
         Run the simulation as fast as possible or using the real time GUI.
-        :param marxbot
-        :param world
-        :param gui
-        :param T
-        :param dt: update timestep in seconds, should be below 1 (typically .02-.1)
+        :param marxbot: MyMarxbot
+        :param world: pyenki.World
+        :param builder: DatasetBuilder
+        :param template: DatasetBuilder.Template
+        :param gui: bool
+        :param T: float
+        :param dt: float update timestep in seconds, should be below 1 (typically .02-.1)
         """
 
         if gui:
@@ -201,19 +219,14 @@ class GenerateSimulationData:
         else:
             steps = int(T // dt)
 
-            run_states = []
-            step_state = cls.generate_dict(marxbot)
+            cls.update_template_robot(template, marxbot)
 
             for s in range(steps):
                 world.step(dt)
 
-                cls.update_dict(step_state, marxbot)
-                step_state["step"] = s
-
-                run_states.append(step_state.copy())
+                cls.update_template_step(template, marxbot, step=s)
+                builder.append_sample(template)
 
                 # Check if the robot has reached the target
                 if marxbot.goal_reached:
                     break
-
-            return run_states

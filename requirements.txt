@@ -1,0 +1,12 @@
+# PyEnki is not available on PyPI, download and build from http://github.com/jeguzzi/enki
+# pyenki
+
+torch
+torch-vision
+
+numpy
+matplotlib
+pandas # FIXME: check if still needed
+xarray
+netCDF4
+tqdm
