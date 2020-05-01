@@ -41,11 +41,10 @@ class GenerateSimulationData:
         world, marxbot, d_object = cls.setup(controller_factory)
 
         # Generate random polar coordinates to define the area in which the marXbot can spawn, in particular
-        # theta ∈ [-π/2, π/2] and r ∈ [d_object.radius/2, maximum_gap *2]
-        # FIXME rename
-        maximum_gap = 150  # corresponds to the proximity sensors maximal range
+        # theta ∈ [-π/2, π/2] and r ∈ [d_object.radius/2, max_range * 1.2]
+        max_range = 150  # corresponds to the proximity sensors maximal range
 
-        r = np.random.uniform(d_object.radius * 2, maximum_gap * 2, n_simulations)
+        r = np.random.uniform(d_object.radius * 2, max_range * 1.2, n_simulations)
         theta = np.random.uniform(-np.pi / 2, np.pi / 2, n_simulations)
         # The angle is chose randomly in all its possible realisations
         angle = np.random.uniform(0, 2 * np.pi, n_simulations)
@@ -58,23 +57,23 @@ class GenerateSimulationData:
                 cls.init_positions(marxbot, d_object, marxbot_rel_poses[n])
                 run_states = cls.run(marxbot, world, args.gui)
 
-                df = pd.DataFrame(run_states)
-                df['run'] = n
+                dataset_run = pd.DataFrame(run_states)
+                dataset_run['run'] = n
 
-                dataset_states = dataset_states.append(df, ignore_index=True)
+                dataset_states = dataset_states.append(dataset_run, ignore_index=True)
             except Exception as e:
                 print('ERROR: ', e)
 
+        print(dataset_states.goal_reached.value_counts())
         cls.save_dataset(dataset_states, runs_dir)
 
     @classmethod
     def setup(cls, controller_factory):
         """
-        Set up the world FIXME how.
+        Set up the world.
         :param controller_factory: if the controller is passed, load the learned network
         :return world, marxbot, docking_station
         """
-        # FIXME
         # Create an unbounded world
         world = pyenki.World()
 
@@ -91,7 +90,7 @@ class GenerateSimulationData:
             -1, pyenki.Color(0, 0.5, 0.5))
         world.add_object(d_object)
 
-        # Decide the pose of the d_object
+        # Decide the pose of the docking_station
         d_object.position = (0, 0)
         d_object.angle = 0
 
@@ -163,8 +162,8 @@ class GenerateSimulationData:
         step_state['angle'] = marxbot.angle
         step_state['left_wheel_target_speed'] = marxbot.left_wheel_target_speed
         step_state['right_wheel_target_speed'] = marxbot.right_wheel_target_speed
-        step_state['scanner_distances'] = marxbot.scanner_distances
-        step_state['scanner_image'] = marxbot.scanner_image
+        step_state['scanner_distances'] = np.array(marxbot.scanner_distances)
+        step_state['scanner_image'] = np.array(marxbot.scanner_image)
         step_state['goal_reached'] = marxbot.goal_reached
 
     @classmethod
@@ -178,11 +177,10 @@ class GenerateSimulationData:
         json_file = os.path.join(runs_dir, 'simulation.json.gz')
 
         dataframe.to_pickle(pkl_file, protocol=4)
-        dataframe.to_json(json_file, orient='columns')
+        dataframe.to_json(json_file, orient='index')
 
     @classmethod
-    def run(cls, marxbot,
-            world: pyenki.World, gui: bool = False, T: float = 10, dt: float = 0.1, tol: float = 0.1) -> List[Dict]:
+    def run(cls, marxbot: MyMarxbot, world: pyenki.World, gui: bool = False, T: float = 15, dt: float = 0.1) -> List[Dict]:
         """
         Run the simulation as fast as possible or using the real time GUI.
         :param marxbot
@@ -190,7 +188,6 @@ class GenerateSimulationData:
         :param gui
         :param T
         :param dt: update timestep in seconds, should be below 1 (typically .02-.1)
-        :param tol: tolerance used to verify if the robot reaches the target
         """
 
         if gui:

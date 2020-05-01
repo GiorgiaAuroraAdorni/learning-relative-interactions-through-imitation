@@ -1,7 +1,5 @@
 import pyenki
 
-from controllers import controllers_task1
-
 
 class MyMarxbot(pyenki.Marxbot):
     """

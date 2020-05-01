@@ -22,7 +22,7 @@ def signed_distance(state):
     return b - a
 
 
-def linear_velocity(state, max_vel, constant=4):
+def linear_velocity(state, max_vel, constant=8):
     """
     :param state
     :param max_vel
@@ -30,7 +30,7 @@ def linear_velocity(state, max_vel, constant=4):
     :return: linear velocity
     """
     velocity = constant * signed_distance(state)
-    velocity = np.clip(velocity, -max_vel/1.5, max_vel/1.5)
+    velocity = np.clip(velocity, -max_vel/1.2, max_vel/1.2)
 
     return velocity
 
