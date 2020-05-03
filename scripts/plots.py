@@ -5,6 +5,9 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib.animation import FuncAnimation
+import xarray as xr
+
+from utils import unpack
 
 
 def save_visualisation(filename, img_dir, make_space=False, axes=None):
@@ -51,25 +54,22 @@ def plot_distance_from_goal(runs_dir, img_dir, title, filename):
     :param title
     :param filename
     """
-    pickle_file = os.path.join(runs_dir, 'simulation.pkl.gz')
-    dataset_states = pd.read_pickle(pickle_file)
+    nc_file = os.path.join(runs_dir, 'simulation.nc')
+    dataset_states = xr.load_dataset(nc_file)
 
-    time_steps = np.arange(dataset_states['step'].max() + 1)
+    time_steps = np.arange(dataset_states.step.max() + 1)
 
     fig, axes = plt.subplots(nrows=2, figsize=(6.8, 8.4), sharex=True)
     plt.xlabel('timestep', fontsize=11)
 
     # Plot position distance from goal
-    p_q1 = dataset_states.groupby(['step'])['goal_position_distance'].quantile(0.25)
-    p_q2 = dataset_states.groupby(['step'])['goal_position_distance'].quantile(0.75)
-    p_q3 = dataset_states.groupby(['step'])['goal_position_distance'].quantile(0.10)
-    p_q4 = dataset_states.groupby(['step'])['goal_position_distance'].quantile(0.90)
-    median_p_by_step = dataset_states.groupby(['step'])['goal_position_distance'].median()
+    goal_p_dist_by_step = dataset_states.goal_position_distance.groupby('step')
+    p_q1, p_q2, p_q3, p_q4, p_median = unpack(goal_p_dist_by_step.quantile([0.25, 0.75, 0.10, 0.90, 0.5]), 'quantile')
 
     axes[0].set_ylabel('distance from goal', fontsize=11)
     axes[0].grid()
 
-    ln, = axes[0].plot(time_steps, median_p_by_step, label='median')
+    ln, = axes[0].plot(time_steps, p_median, label='median')
     axes[0].fill_between(time_steps, p_q1, p_q2, alpha=0.2, label='interquartile range', color=ln.get_color())
     axes[0].fill_between(time_steps, p_q3, p_q4, alpha=0.1, label='interdecile range', color=ln.get_color())
 
@@ -77,16 +77,13 @@ def plot_distance_from_goal(runs_dir, img_dir, title, filename):
     axes[0].set_title('Position', weight='bold', fontsize=12)
 
     # Plot angle distance form goal
-    a_q1 = dataset_states.groupby(['step'])['goal_angle_distance'].quantile(0.25)
-    a_q2 = dataset_states.groupby(['step'])['goal_angle_distance'].quantile(0.75)
-    a_q3 = dataset_states.groupby(['step'])['goal_angle_distance'].quantile(0.10)
-    a_q4 = dataset_states.groupby(['step'])['goal_angle_distance'].quantile(0.90)
-    median_a_by_step = dataset_states.groupby(['step'])['goal_angle_distance'].median()
+    goal_a_dist_by_step = dataset_states.goal_angle_distance.groupby('step')
+    a_q1, a_q2, a_q3, a_q4, a_median = unpack(goal_a_dist_by_step.quantile([0.25, 0.75, 0.10, 0.90, 0.5]), 'quantile')
 
     axes[1].set_ylabel('distance from goal', fontsize=11)
     axes[1].grid()
 
-    ln, = axes[1].plot(time_steps, median_a_by_step, label='median')
+    ln, = axes[1].plot(time_steps, a_median, label='median')
     # plt.plot(time_steps, mean_a_diff_from_goal, label='mean')
     axes[1].fill_between(time_steps, a_q1, a_q2, alpha=0.2, label='interquartile range', color=ln.get_color())
     axes[1].fill_between(time_steps, a_q3, a_q4, alpha=0.1, label='interdecile range', color=ln.get_color())
@@ -110,28 +107,12 @@ def plot_position_over_time(runs_dir, img_dir, title, filename):
     :param title
     :param filename:
     """
-    pickle_file = os.path.join(runs_dir, 'simulation.pkl.gz')
-    dataset_states = pd.read_pickle(pickle_file)
+    nc_file = os.path.join(runs_dir, 'simulation.nc')
+    dataset_states = xr.load_dataset(nc_file)
 
-    time_steps = np.arange(dataset_states['step'].max() + 1)
-
-    x_goal_position = dataset_states.loc[0, 'goal_position'][0]
-    y_goal_position = dataset_states.loc[0, 'goal_position'][1]
-
-    df = dataset_states.loc[:, ['position', 'goal_position', 'step']]
-    df[['x_position', 'y_position']] = pd.DataFrame(df['position'].tolist(), index=df.index)
-
-    x_mean = df.groupby(['step'])['x_position'].median()
-    x_q1 = df.groupby(['step'])['x_position'].quantile(0.25)
-    x_q2 = df.groupby(['step'])['x_position'].quantile(0.75)
-    x_q3 = df.groupby(['step'])['x_position'].quantile(0.10)
-    x_q4 = df.groupby(['step'])['x_position'].quantile(0.90)
-
-    y_mean = df.groupby(['step'])['y_position'].median()
-    y_q1 = df.groupby(['step'])['y_position'].quantile(0.25)
-    y_q2 = df.groupby(['step'])['y_position'].quantile(0.75)
-    y_q3 = df.groupby(['step'])['y_position'].quantile(0.10)
-    y_q4 = df.groupby(['step'])['y_position'].quantile(0.90)
+    time_steps = np.arange(dataset_states.step.max() + 1)
+    x_goal_position, y_goal_position = unpack(dataset_states.goal_position[0], 'axis')
+    position_by_step = dataset_states.position.groupby('step').quantile([0.25, 0.75, 0.10, 0.90, 0.5])
 
     # Plot the evolution of the position over time
     fig, ax = plt.subplots(figsize=(7.8, 4.8))
@@ -141,13 +122,13 @@ def plot_position_over_time(runs_dir, img_dir, title, filename):
     ax.set_yticks([x_goal_position, y_goal_position])
     ax.grid()
 
-    ln, = ax.plot(time_steps, x_mean, label='median (x axis)')
-    ax.fill_between(time_steps, x_q1, x_q2, alpha=0.2, label='interquartile range (x axis)', color=ln.get_color())
-    ax.fill_between(time_steps, x_q3, x_q4, alpha=0.1, label='interdecile range (x axis)', color=ln.get_color())
+    for quantiles in unpack(position_by_step, "axis"):
+        axis = quantiles.axis.values
+        q1, q2, q3, q4, median = unpack(quantiles, "quantile")
 
-    ln, = ax.plot(time_steps, y_mean, label='median (y axis)')
-    ax.fill_between(time_steps, y_q1, y_q2, alpha=0.2, label='interquartile range (y axis)', color=ln.get_color())
-    ax.fill_between(time_steps, y_q3, y_q4, alpha=0.1, label='interdecile range (y axis)', color=ln.get_color())
+        ln, = ax.plot(time_steps, median, label='median (%s axis)' % axis)
+        ax.fill_between(time_steps, q1, q2, alpha=0.2, label='interquartile range (%s axis)' % axis, color=ln.get_color())
+        ax.fill_between(time_steps, q3, q4, alpha=0.1, label='interdecile range (%s axis)' % axis, color=ln.get_color())
 
     ax.legend()
     fig.suptitle(title, fontsize=14, weight='bold')

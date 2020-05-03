@@ -11,6 +11,10 @@ def check_dir(directory):
     os.makedirs(directory, exist_ok=True)
 
 
+def unpack(array, dim):
+    return (array.loc[{dim: value}] for value in array[dim])
+
+
 def dataset_split(file_name, num_run=1000):
     """
 
