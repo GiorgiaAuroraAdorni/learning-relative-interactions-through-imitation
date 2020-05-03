@@ -193,12 +193,13 @@ class GenerateSimulationData:
         """
         print('Saving dataset for %s…' % controller)
 
-        pkl_file = os.path.join(runs_dir, 'simulation.pkl.gz')
         nc_file = os.path.join(runs_dir, 'simulation.nc')
 
-        # FIXME: check how to compress file
-        # dataset.to_pickle(pkl_file, protocol=4)
-        dataset.to_netcdf(nc_file)
+        # TODO: some columns don't seems good candidates for zlib compression,
+        #       disabling it for these columns might be beneficial.
+        encoding = {key: {'zlib': True, 'complevel': 7} for key in dataset.keys()}
+
+        dataset.to_netcdf(nc_file, encoding=encoding)
 
     @classmethod
     def run(cls, marxbot, world, builder, template, gui=False, T=15, dt=0.1):
