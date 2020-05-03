@@ -198,7 +198,6 @@ class GenerateSimulationData:
         # TODO: some columns don't seems good candidates for zlib compression,
         #       disabling it for these columns might be beneficial.
         encoding = {key: {'zlib': True, 'complevel': 7} for key in dataset.keys()}
-
         dataset.to_netcdf(nc_file, encoding=encoding)
 
     @classmethod

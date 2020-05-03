@@ -1,3 +1,4 @@
+import numpy as np
 import xarray as xr
 
 
@@ -62,7 +63,10 @@ class DatasetBuilder:
                 raise ValueError("Variable '{}' was not defined at initialization time".format(key))
 
     def finalize(self) -> xr.Dataset:
-        return xr.Dataset(self.data, coords=self.coords, attrs=self.attrs)
+        dataset = xr.Dataset(self.data, coords=self.coords, attrs=self.attrs)
+        dataset['sample'] = np.arange(dataset.sizes['sample'])
+
+        return dataset
 
     class Template:
         def __init__(self, **kwargs):
