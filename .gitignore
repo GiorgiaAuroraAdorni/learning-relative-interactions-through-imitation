@@ -1,6 +1,6 @@
 
-# Created by https://www.gitignore.io/api/macos,python,pycharm,jetbrains
-# Edit at https://www.gitignore.io/?templates=macos,python,pycharm,jetbrains
+# Created by https://www.gitignore.io/api/macos,python,pycharm,jetbrains,jupyternotebooks
+# Edit at https://www.gitignore.io/?templates=macos,python,pycharm,jetbrains,jupyternotebooks
 
 ### JetBrains ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
@@ -89,6 +89,20 @@ fabric.properties
 # Markdown Navigator plugin
 .idea/**/markdown-navigator.xml
 .idea/**/markdown-navigator/
+
+### JupyterNotebooks ###
+# gitignore template for Jupyter Notebooks
+# website: http://jupyter.org/
+
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Remove previous ipynb_checkpoints
+#   git rm -r .ipynb_checkpoints/
 
 ### macOS ###
 # General
@@ -279,4 +293,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# End of https://www.gitignore.io/api/macos,python,pycharm,jetbrains
+# End of https://www.gitignore.io/api/macos,python,pycharm,jetbrains,jupyternotebooks
