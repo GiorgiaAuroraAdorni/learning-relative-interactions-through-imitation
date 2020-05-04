@@ -181,10 +181,10 @@ def plot_sensors(runs_dir, img_dir, title, filename):
     :param title:
     :param filename:
     """
-    pickle_file = os.path.join(runs_dir, 'simulation.pkl.gz')
-    dataset_states = pd.read_pickle(pickle_file)
+    nc_file = os.path.join(runs_dir, 'simulation.nc')
+    dataset_states = xr.load_dataset(nc_file)
+    run_states = dataset_states.where(dataset_states.run == 0, drop=True)
 
-    run_states = dataset_states.loc[dataset_states['run'] == 0]
     angles = np.linspace(-np.pi, np.pi, 180)
     robot_radius = 8.5
     sensor_range = 150.0
@@ -205,8 +205,8 @@ def plot_sensors(runs_dir, img_dir, title, filename):
     make_space_above(ax, topmargin=1)
 
     def update(i):
-        distances = run_states.loc[i, 'scanner_distances']
-        colors = run_states.loc[i, 'scanner_image']
+        distances = run_states.scanner_distances[i]
+        colors = run_states.scanner_image[i]
 
         ln.set_ydata(distances)
 
@@ -214,7 +214,7 @@ def plot_sensors(runs_dir, img_dir, title, filename):
         scatter.set_offsets(offsets)
         scatter.set_facecolors(colors)
 
-    ani = FuncAnimation(fig, update, frames=run_states.index, blit=False)
+    ani = FuncAnimation(fig, update, frames=run_states.step, blit=False)
 
     video = os.path.join(img_dir, '%s.mp4' % filename)
 

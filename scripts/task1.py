@@ -91,6 +91,9 @@ if __name__ == '__main__':
     img_dir_omniscient = os.path.join(runs_dir_omniscient, 'images')
     check_dir(img_dir_omniscient)
 
+    video_dir_omniscient = os.path.join(runs_dir_omniscient, 'videos')
+    check_dir(video_dir_omniscient)
+
     if args.controller == 'all' or args.controller == 'omniscient':
         if args.generate_dataset:
             print('Generating n_simulations for %s…' % omniscient_controller)
@@ -112,7 +115,7 @@ if __name__ == '__main__':
                                            'Distribution of the goal reached - %s' % omniscient_controller,
                                            'goal-reached-%s' % omniscient_controller)
 
-            plot_sensors(runs_dir_omniscient, img_dir_omniscient,
+            plot_sensors(runs_dir_omniscient, video_dir_omniscient,
                          'Laser scanner response over time - %s' % omniscient_controller,
                          'laser-scanner-response-over-time-%s' % omniscient_controller)
 
