@@ -21,6 +21,8 @@ def Parse():
                         help='generate the dataset containing the n_simulations (default: False)')
     parser.add_argument('--plots-dataset', action="store_true",
                         help='generate the plots of regarding the dataset (default: False)')
+    parser.add_argument('--generate-splits', action="store_true",
+                        help='generate the dataset containing the n_simulations (default: False)')
     parser.add_argument('--controller', default='all', choices=['all', 'learned', 'omniscient'],
                         help='choose the controller for the current execution between all, learned, manual and '
                              'omniscient (default: all)')
@@ -41,8 +43,41 @@ def Parse():
     return args
 
 
-if __name__ == '__main__':
+def generate_splits(dataset_path, coord='run', splits=None):
+    import numpy as np
+    import xarray as xr
 
+    if splits is None:
+        splits = {
+            "train": 0.7,
+            "validation": 0.15,
+            "test": 0.15
+        }
+
+    names = list(splits.keys())
+    codes = np.arange(len(splits), dtype=np.int8)
+    probs = list(splits.values())
+
+    dataset = xr.open_dataset(dataset_path)
+
+    unique, unique_inverse = np.unique(dataset[coord], return_inverse=True)
+    n_indices = unique.size
+
+    unique_assigns = np.random.choice(codes, n_indices, p=probs)
+    assigns = unique_assigns[unique_inverse]
+
+    coords = dataset[coord].coords
+    attrs = {
+        "split_names": names
+    }
+
+    splits = xr.DataArray(assigns, name="split", coords=coords, attrs=attrs)
+
+    splits_path = os.path.splitext(dataset_path)[0] + '.splits.nc'
+    splits.to_netcdf(splits_path)
+
+
+if __name__ == '__main__':
     args = Parse()
 
     runs_dir = os.path.join(args.dataset_folder)
@@ -81,3 +116,6 @@ if __name__ == '__main__':
                          'Laser scanner response over time - %s' % omniscient_controller,
                          'laser-scanner-response-over-time-%s' % omniscient_controller)
 
+        if args.generate_splits:
+            dataset_path = os.path.join(runs_dir_omniscient, 'simulation.nc')
+            generate_splits(dataset_path)

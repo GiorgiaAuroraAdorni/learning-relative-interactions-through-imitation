@@ -1,7 +1,5 @@
 import os
 
-import numpy as np
-
 
 def check_dir(directory):
     """
@@ -11,17 +9,12 @@ def check_dir(directory):
     os.makedirs(directory, exist_ok=True)
 
 
-def unpack(array, dim):
-    return (array.loc[{dim: value}] for value in array[dim])
-
-
-def dataset_split(file_name, num_run=1000):
+def unpack(dataset, dim):
     """
+    Unpack a `xr.Dataset` along a given dimension
 
-    :param file_name:
-    :param num_run:
+    :param dataset: dataset object to be unpacked
+    :param dim: dimension along which the dataset should be unpacked
+    :return: sequence of one `xr.Dataset`s for each value of dim
     """
-    x = np.arange(num_run)
-    np.random.shuffle(x)
-
-    np.save(file_name, x)
+    return (dataset.loc[{dim: value}] for value in dataset[dim])
