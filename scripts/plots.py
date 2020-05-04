@@ -147,19 +147,24 @@ def plot_goal_reached_distribution(runs_dir, img_dir, title, filename):
     :param title:
     :param filename:
     """
-    pickle_file = os.path.join(runs_dir, 'simulation.pkl.gz')
-    dataset_states = pd.read_pickle(pickle_file)
+    nc_file = os.path.join(runs_dir, 'simulation.nc')
+    dataset_states = xr.load_dataset(nc_file)
 
-    time_steps = np.arange(dataset_states['step'].max() + 1)
+    time_steps = np.arange(dataset_states.step.max() + 1)
+
+    states_subset = dataset_states[["step", "goal_reached"]]
+    last_steps = states_subset.groupby("run").map(lambda x: x.isel(sample=-1))
+    [false_label, false_samples], [true_label, true_samples] = last_steps.groupby('goal_reached')
 
     fig, ax = plt.subplots(figsize=(7.8, 4.8))
+    plt.hist([true_samples.step, false_samples.step], bins=time_steps, label=[true_label, false_label], stacked=True,
+             alpha=0.9)
+    plt.ylim(0, 35)
+    plt.legend()
+
+    ax.set_xlim(0, dataset_states.step.max() + 1)
     ax.set_xlabel('timestep', fontsize=11)
-    ax.set_ylabel('position', fontsize=11)
-
-    goal_reached = dataset_states.groupby(['step'])['goal_reached'].count()
-    sns.distplot(goal_reached, bins=time_steps, kde=False, ax=ax)
-    ax.set_xlim(0, dataset_states['step'].max() + 1)
-
+    ax.set_ylabel('samples', fontsize=11)
     fig.suptitle(title, fontsize=14, weight='bold')
 
     fig.tight_layout()
