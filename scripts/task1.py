@@ -6,12 +6,8 @@ from utils import check_dir
 from simulations import GenerateSimulationData as sim
 
 
-def Parse():
-    """
-
-    :return args
-    """
-    parser = argparse.ArgumentParser(description='PyTorch FrontNet')
+def parse_args():
+    parser = argparse.ArgumentParser(description='Imitation Learning - Task1')
 
     parser.add_argument('--gui', action="store_true",
                         help='run simulation using the gui (default: False)')
@@ -22,7 +18,7 @@ def Parse():
     parser.add_argument('--plots-dataset', action="store_true",
                         help='generate the plots of regarding the dataset (default: False)')
     parser.add_argument('--generate-splits', action="store_true",
-                        help='generate the dataset containing the n_simulations (default: False)')
+                        help='generate dataset splits for training, validation and testing (default: False)')
     parser.add_argument('--controller', default='all', choices=['all', 'learned', 'omniscient'],
                         help='choose the controller for the current execution between all, learned, manual and '
                              'omniscient (default: all)')
@@ -33,8 +29,6 @@ def Parse():
                         help='train the model  (default: False)')
     parser.add_argument('--model', default='net1', type=str,
                         help='name of the model (default: net1)')
-    parser.add_argument('--generate-split', action="store_true",
-                        help='generate the indices for the split of the dataset (default: False)')
     parser.add_argument('--plots-net', action="store_true",
                         help='generate the plots of regarding the model (default: False)')
 
@@ -78,7 +72,7 @@ def generate_splits(dataset_path, coord='run', splits=None):
 
 
 if __name__ == '__main__':
-    args = Parse()
+    args = parse_args()
 
     runs_dir = os.path.join(args.dataset_folder)
     check_dir(runs_dir)
