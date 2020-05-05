@@ -15,14 +15,19 @@ class ControllerViz(QObject):
 
         self.time_window = time_window
 
+        self.subplot_kw = {}
+
     def show(self, refresh_interval=0.060, ax=None):
         if not ax:
-            fig, ax = plt.subplots()
+            fig = plt.figure()
+            ax  = fig.add_subplot(111, **self.subplot_kw)
 
         self.ax = ax
 
         self.ax.set_xlabel("time (s)")
         self.ax.set_xlim(-self.time_window, 0)
+
+        self.ax.grid('both')
 
         self.n_samples = round(self.time_window / refresh_interval)
         self.n_dims = 2

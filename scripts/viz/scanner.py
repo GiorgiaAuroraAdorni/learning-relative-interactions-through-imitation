@@ -14,10 +14,14 @@ class DistanceScannerViz(QObject):
         self.angles = np.linspace(-np.pi, np.pi, 180)
         self.distances = np.full_like(self.angles, sensor_range)
 
+        self.subplot_kw = {
+            "polar": True
+        }
+
     def show(self, refresh_interval=0.030, ax=None):
         if not ax:
             fig = plt.figure()
-            ax  = fig.add_subplot(111, polar=True)
+            ax  = fig.add_subplot(111, **self.subplot_kw)
 
         self.ax = ax
 
