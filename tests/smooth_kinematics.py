@@ -12,6 +12,7 @@ import pyenki
 
 from marxbot import MyMarxbot
 from viz.controller import ControllerViz
+from viz.env import InteractiveEnv
 from viz.layout import GridLayoutViz
 from viz.scanner import DistanceScannerViz
 import controllers.controllers_task1 as controllers
@@ -49,12 +50,14 @@ view = pyenki.WorldView(world, run_world_update=True,
                         orthographic=False, period=0.06)
 view.show()
 
-# Create the distance scanner visualization
-viz = GridLayoutViz((1, 2), [
-    DistanceScannerViz(marxbot),
-    ControllerViz(marxbot)
+# Create the visualizations
+env = InteractiveEnv([
+    GridLayoutViz((1, 2), [
+        DistanceScannerViz(marxbot),
+        ControllerViz(marxbot)
+    ])
 ])
-viz.show(figsize=(9, 4))
+env.show(figsize=(9, 4))
 
 # Start the event loop
 pyenki.execApp(view)

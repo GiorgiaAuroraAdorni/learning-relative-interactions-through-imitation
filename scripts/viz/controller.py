@@ -1,12 +1,10 @@
 import numpy as np
-import matplotlib.pyplot as plt
-
-from PyQt5.QtCore import QObject
 
 from marxbot import MyMarxbot
+from viz.env import Viz
 
 
-class ControllerViz(QObject):
+class ControllerViz(Viz):
     def __init__(self, marxbot: MyMarxbot, time_window=10):
         super().__init__()
 
@@ -15,22 +13,16 @@ class ControllerViz(QObject):
 
         self.time_window = time_window
 
-        self.subplot_kw = {}
-
-    def show(self, refresh_interval=0.060, ax=None):
-        if not ax:
-            fig = plt.figure()
-            ax  = fig.add_subplot(111, **self.subplot_kw)
-
-        self.ax = ax
+    def _show(self, env):
+        self.ax = env.get_axes()
 
         self.ax.set_xlabel("time (s)")
         self.ax.set_xlim(-self.time_window, 0)
-
         self.ax.grid('both')
 
-        self.n_samples = round(self.time_window / refresh_interval)
         self.n_dims = 2
+        self.n_samples = round(self.time_window / env.refresh_interval)
+
         self.time = np.linspace(-self.time_window, 0, self.n_samples)
         self.readings = np.full((self.n_dims, self.n_samples), np.nan)
 
@@ -59,9 +51,7 @@ class ControllerViz(QObject):
 
             self.plots.append(plot)
 
-        self.startTimer(int(1000 * refresh_interval))
-
-    def timerEvent(self, event):
+    def _update(self):
         self.readings = np.roll(self.readings, -1, axis=1)
         self.readings[:, -1] = (self.controller.lin_vel, self.controller.ang_vel)
 
