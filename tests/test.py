@@ -32,6 +32,7 @@ cylinder = pyenki.CircularObject(10, 15, -1, pyenki.Color(0.0, 1.0, 0.0))
 cylinder.position = (20, 20)
 world.add_object(cylinder)
 
+
 class DistanceScannerViz(QObject):
     def __init__(self, marxbot, robot_radius=8.5, sensor_range=150.0, refresh_interval=30):
         super().__init__()

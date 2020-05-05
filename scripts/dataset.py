@@ -1,19 +1,27 @@
 import os
+from typing import Union, Tuple
 
 import numpy as np
 import xarray as xr
 
-from typing import Union, Tuple
 from utils import unpack_tuple
 
 
 class DatasetBuilder:
+    """
+    TODO: add documentation please
+    """
     def __init__(self, data, coords=None, attrs=None):
         self.data = self._create_storage(data)
         self.coords = self._create_storage(coords or {})
         self.attrs = attrs or {}
 
     def _create_storage(self, specs):
+        """
+
+        :param specs:
+        :return storage:
+        """
         storage = dict()
 
         for key, value in specs.items():
@@ -56,9 +64,18 @@ class DatasetBuilder:
         return storage
 
     def create_template(self, **kwargs):
+        """
+
+        :param kwargs:
+        :return DatasetBuilder.Template:
+        """
         return DatasetBuilder.Template(**kwargs)
 
     def append_sample(self, sample):
+        """
+
+        :param sample:
+        """
         for key, value in sample.template.items():
             if key in self.data:
                 self.data[key][1].append(value)
@@ -68,22 +85,42 @@ class DatasetBuilder:
                 raise ValueError("Variable '{}' was not defined at initialization time".format(key))
 
     def finalize(self) -> xr.Dataset:
+        """
+
+        :return dataset:
+        """
         dataset = xr.Dataset(self.data, coords=self.coords, attrs=self.attrs)
         dataset['sample'] = np.arange(dataset.sizes['sample'])
 
         return dataset
 
     class Template:
+        """
+
+        """
         def __init__(self, **kwargs):
             self.template = {}
             self.update(**kwargs)
 
         def update(self, **kwargs):
+            """
+
+            :param kwargs:
+            :return:
+            """
             self.template.update(kwargs)
 
 
 def load_dataset(runs_dir, name='simulation', *, load_dataset=True, load_splits=False)\
         -> Union[Tuple[xr.Dataset, xr.Dataset], xr.Dataset]:
+    """
+
+    :param runs_dir:
+    :param name:
+    :param load_dataset:
+    :param load_splits:
+    :return:
+    """
     out = ()
 
     if load_dataset:
@@ -105,6 +142,13 @@ def load_dataset(runs_dir, name='simulation', *, load_dataset=True, load_splits=
 
 
 def save_dataset(runs_dir, name='simulation', *, dataset=None, splits=None):
+    """
+
+    :param runs_dir:
+    :param name:
+    :param dataset:
+    :param splits:
+    """
     if dataset:
         dataset_path = os.path.join(runs_dir, '%s.nc' % name)
 
@@ -121,6 +165,13 @@ def save_dataset(runs_dir, name='simulation', *, dataset=None, splits=None):
 
 
 def generate_splits(dataset, coord='run', splits=None):
+    """
+
+    :param dataset:
+    :param coord:
+    :param splits:
+    :return splits:
+    """
     if splits is None:
         splits = {
             "train": 0.7,

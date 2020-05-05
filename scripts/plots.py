@@ -6,6 +6,7 @@ import numpy as np
 import xarray as xr
 from matplotlib.animation import FuncAnimation
 
+from dataset import load_dataset
 from geometry import Point, Transform
 from utils import unpack
 
@@ -54,8 +55,7 @@ def plot_distance_from_goal(runs_dir, img_dir, title, filename):
     :param title
     :param filename
     """
-    nc_file = os.path.join(runs_dir, 'simulation.nc')
-    dataset_states = xr.load_dataset(nc_file)
+    dataset_states = load_dataset(runs_dir)
 
     time_steps = np.arange(dataset_states.step.max() + 1)
 
@@ -84,7 +84,6 @@ def plot_distance_from_goal(runs_dir, img_dir, title, filename):
     axes[1].grid()
 
     ln, = axes[1].plot(time_steps, a_median, label='median')
-    # plt.plot(time_steps, mean_a_diff_from_goal, label='mean')
     axes[1].fill_between(time_steps, a_q1, a_q2, alpha=0.2, label='interquartile range', color=ln.get_color())
     axes[1].fill_between(time_steps, a_q3, a_q4, alpha=0.1, label='interdecile range', color=ln.get_color())
 
@@ -107,8 +106,7 @@ def plot_position_over_time(runs_dir, img_dir, title, filename):
     :param title
     :param filename:
     """
-    nc_file = os.path.join(runs_dir, 'simulation.nc')
-    dataset_states = xr.load_dataset(nc_file)
+    dataset_states = load_dataset(runs_dir)
 
     time_steps = np.arange(dataset_states.step.max() + 1)
     x_goal_position, y_goal_position = unpack(dataset_states.goal_position[0], 'axis')
@@ -147,8 +145,7 @@ def plot_goal_reached_distribution(runs_dir, img_dir, title, filename):
     :param title:
     :param filename:
     """
-    nc_file = os.path.join(runs_dir, 'simulation.nc')
-    dataset_states = xr.load_dataset(nc_file)
+    dataset_states = load_dataset(runs_dir)
 
     time_steps = np.arange(dataset_states.step.max() + 1)
 
@@ -181,8 +178,7 @@ def plot_trajectory(runs_dir, img_dir, title, filename):
     :param title:
     :param filename:
     """
-    nc_file = os.path.join(runs_dir, 'simulation.nc')
-    dataset_states = xr.load_dataset(nc_file)
+    dataset_states = load_dataset(runs_dir)
 
     run_states = dataset_states.where(dataset_states.run == 0, drop=True)
 
@@ -252,8 +248,7 @@ def plot_sensors(runs_dir, video_dir, title, filename):
     :param title:
     :param filename:
     """
-    nc_file = os.path.join(runs_dir, 'simulation.nc')
-    dataset_states = xr.load_dataset(nc_file)
+    dataset_states = load_dataset(runs_dir)
     run_states = dataset_states.where(dataset_states.run == 0, drop=True)
 
     angles = np.linspace(-np.pi, np.pi, 180)

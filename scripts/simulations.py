@@ -1,6 +1,4 @@
-import os
 import re
-from collections import defaultdict
 
 import numpy as np
 import pyenki
@@ -24,8 +22,8 @@ class GenerateSimulationData:
 
         :param n_simulations:
         :param controller:
-        :param model_dir:
         :param args:
+        :param model_dir:
         :param model:
         """
         if controller == cls.OMNISCIENT_CONTROLLER:
@@ -132,6 +130,10 @@ class GenerateSimulationData:
 
     @classmethod
     def init_dataset(cls):
+        """
+
+        :return:
+        """
         return DatasetBuilder({
             "name": (),
             "initial_position": ("axis"),
@@ -161,6 +163,12 @@ class GenerateSimulationData:
 
     @classmethod
     def update_template_robot(cls, template: DatasetBuilder.Template, marxbot):
+        """
+
+        :param template:
+        :param marxbot:
+        :return:
+        """
         template.update(
             name=marxbot.name,
             initial_position=marxbot.initial_position,
@@ -171,6 +179,13 @@ class GenerateSimulationData:
 
     @classmethod
     def update_template_step(cls, template: DatasetBuilder.Template, marxbot, step):
+        """
+
+        :param template:
+        :param marxbot:
+        :param step:
+        :return:
+        """
         template.update(
             step=step,
             position=marxbot.position,
