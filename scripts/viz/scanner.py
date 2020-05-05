@@ -1,27 +1,32 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import colors
 
 from PyQt5.QtCore import QObject
 
 
 class DistanceScannerViz(QObject):
-    def __init__(self, marxbot, sensor_range=150.0, refresh_interval=30):
+    def __init__(self, marxbot, sensor_range=150.0):
         super().__init__()
 
         self.marxbot = marxbot
 
-        self.fig = plt.figure()
-        self.ax = self.fig.add_subplot(111, polar=True)
-
         self.angles = np.linspace(-np.pi, np.pi, 180)
-        distances = np.full_like(self.angles, sensor_range)
+        self.distances = np.full_like(self.angles, sensor_range)
 
-        self.plot = self.ax.plot(self.angles, distances, "-k", zorder=1)[0]
-        self.scatter = self.ax.scatter(self.angles, distances, marker=".", zorder=2)
+    def show(self, refresh_interval=0.030, ax=None):
+        if not ax:
+            fig = plt.figure()
+            ax  = fig.add_subplot(111, polar=True)
 
-        self.ax.fill_between(self.angles, self.marxbot.radius, color=[0.0, 0.0, 1.0, 0.6])
+        self.ax = ax
 
-        self.startTimer(refresh_interval)
+        self.plot = self.ax.plot(self.angles, self.distances, "-k", zorder=1)[0]
+        self.scatter = self.ax.scatter(self.angles, self.distances, marker=".", zorder=2)
+
+        self.ax.fill_between(self.angles, self.marxbot.radius, color=colors.to_rgba("b", alpha=0.6))
+
+        self.startTimer(int(1000 * refresh_interval))
 
     def timerEvent(self, event):
         distances = self.marxbot.scanner_distances
@@ -32,5 +37,3 @@ class DistanceScannerViz(QObject):
         offsets = np.stack([self.angles, distances], axis=-1)
         self.scatter.set_offsets(offsets)
         self.scatter.set_facecolors(colors)
-
-        self.fig.canvas.draw_idle()

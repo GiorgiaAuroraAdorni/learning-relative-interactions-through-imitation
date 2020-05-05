@@ -50,7 +50,10 @@ view.show()
 
 # Create the distance scanner visualization
 viz1 = DistanceScannerViz(marxbot)
+viz1.show()
+
 viz2 = ControllerViz(marxbot)
+viz2.show()
 
 # Start the event loop
 pyenki.execApp(view)

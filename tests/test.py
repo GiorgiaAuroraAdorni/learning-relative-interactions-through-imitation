@@ -54,6 +54,7 @@ plt.ion()
 
 # Create the distance scanner visualization
 viz = DistanceScannerViz(marxbot)
+viz.show()
 
 # Start the event loop
 app.exec()
