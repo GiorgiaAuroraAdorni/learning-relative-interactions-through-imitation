@@ -5,7 +5,7 @@ from PyQt5.QtCore import QObject
 
 
 class DistanceScannerViz(QObject):
-    def __init__(self, marxbot, robot_radius=8.5, sensor_range=150.0, refresh_interval=30):
+    def __init__(self, marxbot, sensor_range=150.0, refresh_interval=30):
         super().__init__()
 
         self.marxbot = marxbot
@@ -19,7 +19,7 @@ class DistanceScannerViz(QObject):
         self.plot = self.ax.plot(self.angles, distances, "-k", zorder=1)[0]
         self.scatter = self.ax.scatter(self.angles, distances, marker=".", zorder=2)
 
-        self.ax.fill_between(self.angles, robot_radius, color=[0.0, 0.0, 1.0, 0.6])
+        self.ax.fill_between(self.angles, self.marxbot.radius, color=[0.0, 0.0, 1.0, 0.6])
 
         self.startTimer(refresh_interval)
 

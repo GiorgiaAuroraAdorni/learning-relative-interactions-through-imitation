@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import QApplication
 import pyenki
 
 from marxbot import MyMarxbot
+from viz.controller import ControllerViz
 from viz.scanner import DistanceScannerViz
 import controllers.controllers_task1 as controllers
 
@@ -20,10 +21,13 @@ controller = controllers.OmniscientController()
 marxbot = MyMarxbot("marxbot", controller)
 marxbot.position = (0, 0)
 marxbot.angle = 0
-marxbot.goal_position = (0, 20)
+marxbot.goal_position = (0, 100)
 marxbot.goal_angle = np.pi/2
 world.add_object(marxbot)
 
+cube = pyenki.RectangularObject(10, 10, height=20, mass=-1, color=pyenki.Color.red)
+cube.position = (0, 115)
+world.add_object(cube)
 
 ## Start the application
 app = QApplication.instance()
@@ -39,13 +43,14 @@ matplotlib.use("QT5Agg")
 plt.ion()
 
 # Create a view --- which will also run ``world.step`` --- and display it
-view = pyenki.WorldView(world, run_world_update=True, cam_position=(0, 0),
-                        cam_altitude=80, cam_pitch=-np.pi / 2, cam_yaw=np.pi / 2,
-                        orthographic=False)
+view = pyenki.WorldView(world, run_world_update=True,
+                        cam_position=(100, 0), cam_altitude=350.0, orthographic=True,
+                        period=0.1)
 view.show()
 
 # Create the distance scanner visualization
-viz = DistanceScannerViz(marxbot)
+viz1 = DistanceScannerViz(marxbot)
+viz2 = ControllerViz(marxbot)
 
 # Start the event loop
 pyenki.execApp(view)
