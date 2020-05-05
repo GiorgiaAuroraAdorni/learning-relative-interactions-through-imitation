@@ -58,7 +58,7 @@ class OmniscientController(Controller):
         return delta_hat
 
     @staticmethod
-    def curvature(r, theta, delta, delta_hat, k1=1, k2=1):
+    def curvature(r, theta, delta, delta_hat, k1=1, k2=3):
         """
 
         :param state:
@@ -105,7 +105,7 @@ class OmniscientController(Controller):
         delta_hat = self.virtual_controller(theta)
         k = self.curvature(r, theta, delta, delta_hat)
 
-        lin_vel = new_linear_velocity(self.max_vel, k)
+        lin_vel = new_linear_velocity(min(self.max_vel, 2 * r), k)
         ang_vel = new_angular_velocity(k, lin_vel)
         left_vel, right_vel = wheels_velocities(lin_vel, ang_vel, np.inf)
 

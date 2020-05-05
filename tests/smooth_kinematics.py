@@ -26,7 +26,7 @@ marxbot.goal_angle = np.pi/2
 world.add_object(marxbot)
 
 cube = pyenki.RectangularObject(10, 10, height=20, mass=-1, color=pyenki.Color.red)
-cube.position = (0, 115)
+cube.position = (0, 125)
 world.add_object(cube)
 
 ## Start the application
@@ -44,8 +44,8 @@ plt.ion()
 
 # Create a view --- which will also run ``world.step`` --- and display it
 view = pyenki.WorldView(world, run_world_update=True,
-                        cam_position=(100, 0), cam_altitude=350.0, orthographic=True,
-                        period=0.1)
+                        cam_position=(0, 0), cam_altitude=350.0, cam_pitch=-np.pi / 2, cam_yaw=np.pi / 2,
+                        orthographic=False, period=0.06)
 view.show()
 
 # Create the distance scanner visualization
