@@ -31,16 +31,19 @@ class OmniscientController(Controller):
         self.max_vel = 30
 
     @staticmethod
-    def target_polar(state):
+    def current_state(state):
         """
 
         :param state:
         :return r, theta: polar coordinates of the target pose with respect to the actual position
         """
-        r = euclidean_distance(state.goal_position, state.position)
-        theta = angle_difference(steering_angle(state), state.goal_angle)
+        steer_angle = steering_angle(state)
 
-        return r, theta
+        r = euclidean_distance(state.goal_position, state.position)
+        theta = angle_difference(steer_angle, state.goal_angle)
+        delta = angle_difference(steer_angle, state.angle)
+
+        return r, theta, delta
 
     @staticmethod
     def virtual_controller(theta, k1=1):
@@ -55,18 +58,18 @@ class OmniscientController(Controller):
         return delta_hat
 
     @staticmethod
-    def curvature(state, r, theta, delta_hat, k1=1, k2=1):
+    def curvature(r, theta, delta, delta_hat, k1=1, k2=1):
         """
 
         :param state:
         :param r:
         :param theta:
+        :param delta:
         :param delta_hat:
         :param k1:
         :param k2:
         :return k:
         """
-        delta = steering_angle(state)
         z = delta - delta_hat
         k = (1 / r) * (k2 * z + (1 + (k1 / (1 + pow(k1 * theta, 2)))) * np.sin(delta))
         return k
@@ -98,9 +101,9 @@ class OmniscientController(Controller):
         #     lin_vel = 0.0
         #     state.goal_reached = True
 
-        r, theta = self.target_polar(state)
+        r, theta, delta = self.current_state(state)
         delta_hat = self.virtual_controller(theta)
-        k = self.curvature(state, r, theta, delta_hat)
+        k = self.curvature(r, theta, delta, delta_hat)
 
         lin_vel = new_linear_velocity(self.max_vel, k)
         ang_vel = new_angular_velocity(k, lin_vel)
