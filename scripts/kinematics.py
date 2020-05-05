@@ -108,13 +108,13 @@ def wheels_velocities(lin_vel, ang_vel, max_vel=np.inf, wheel_distance=15):
     :param ang_vel
     :param max_vel
     :param wheel_distance:
-    :return left_wheel_target_speed, right_wheel_target_speed
+    :return left_speed, right_speed
     """
 
-    left_wheel_target_speed  = lin_vel - wheel_distance * ang_vel
-    right_wheel_target_speed = lin_vel + wheel_distance * ang_vel
+    left_speed  = lin_vel - wheel_distance * ang_vel
+    right_speed = lin_vel + wheel_distance * ang_vel
 
-    left_wheel_target_speed  = np.clip(left_wheel_target_speed,  -max_vel, max_vel)
-    right_wheel_target_speed = np.clip(right_wheel_target_speed, -max_vel, max_vel)
+    left_speed  = np.clip(left_speed,  -max_vel, max_vel)
+    right_speed = np.clip(right_speed, -max_vel, max_vel)
 
-    return left_wheel_target_speed, right_wheel_target_speed
+    return left_speed, right_speed
