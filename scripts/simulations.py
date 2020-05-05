@@ -19,10 +19,9 @@ class GenerateSimulationData:
     LEARNED_CONTROLLER = r"^learned-controller-net\d"
 
     @classmethod
-    def generate_simulation(cls, runs_dir, n_simulations, controller, args, model_dir=None, model=None):
+    def generate_simulation(cls, n_simulations, controller, args, model_dir=None, model=None):
         """
 
-        :param runs_dir
         :param n_simulations:
         :param controller:
         :param model_dir:
@@ -63,7 +62,8 @@ class GenerateSimulationData:
                 print('ERROR: ', e)
 
         dataset = builder.finalize()
-        cls.save_dataset(dataset, runs_dir, controller)
+
+        return dataset
 
     @classmethod
     def setup(cls, controller_factory):
@@ -182,23 +182,6 @@ class GenerateSimulationData:
             goal_position_distance=euclidean_distance(marxbot.goal_position, marxbot.position),
             goal_angle_distance=abs(angle_difference(marxbot.goal_angle, marxbot.angle))
         )
-
-    @classmethod
-    def save_dataset(cls, dataset, runs_dir, controller):
-        """
-
-        :param dataset:
-        :param runs_dir:
-        :param controller:
-        """
-        print('Saving dataset for %s…' % controller)
-
-        nc_file = os.path.join(runs_dir, 'simulation.nc')
-
-        # TODO: some columns don't seems good candidates for zlib compression,
-        #       disabling it for these columns might be beneficial.
-        encoding = {key: {'zlib': True, 'complevel': 7} for key in dataset.keys()}
-        dataset.to_netcdf(nc_file, encoding=encoding)
 
     @classmethod
     def run(cls, marxbot, world, builder, template, gui=False, T=15, dt=0.1):

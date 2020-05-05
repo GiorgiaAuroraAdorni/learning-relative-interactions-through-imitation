@@ -18,3 +18,10 @@ def unpack(dataset, dim):
     :return: sequence of one `xr.Dataset`s for each value of dim
     """
     return (dataset.loc[{dim: value}] for value in dataset[dim])
+
+
+def unpack_tuple(x):
+    if len(x) == 1:
+        return x[0]
+    else:
+        return x

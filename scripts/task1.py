@@ -1,6 +1,7 @@
 import argparse
 import os
 
+from dataset import load_dataset, save_dataset, generate_splits
 from plots import plot_distance_from_goal, plot_position_over_time, plot_goal_reached_distribution, plot_sensors
 from utils import check_dir
 from simulations import GenerateSimulationData as sim
@@ -37,40 +38,6 @@ def parse_args():
     return args
 
 
-def generate_splits(dataset_path, coord='run', splits=None):
-    import numpy as np
-    import xarray as xr
-
-    if splits is None:
-        splits = {
-            "train": 0.7,
-            "validation": 0.15,
-            "test": 0.15
-        }
-
-    names = list(splits.keys())
-    codes = np.arange(len(splits), dtype=np.int8)
-    probs = list(splits.values())
-
-    dataset = xr.open_dataset(dataset_path)
-
-    unique, unique_inverse = np.unique(dataset[coord], return_inverse=True)
-    n_indices = unique.size
-
-    unique_assigns = np.random.choice(codes, n_indices, p=probs)
-    assigns = unique_assigns[unique_inverse]
-
-    coords = dataset[coord].coords
-    attrs = {
-        "split_names": names
-    }
-
-    splits = xr.DataArray(assigns, name="split", coords=coords, attrs=attrs)
-
-    splits_path = os.path.splitext(dataset_path)[0] + '.splits.nc'
-    splits.to_netcdf(splits_path)
-
-
 if __name__ == '__main__':
     args = parse_args()
 
@@ -91,11 +58,15 @@ if __name__ == '__main__':
     if args.controller == 'all' or args.controller == 'omniscient':
         if args.generate_dataset:
             print('Generating n_simulations for %s…' % omniscient_controller)
-            sim.generate_simulation(runs_dir_omniscient, n_simulations=args.n_simulations, controller=omniscient_controller,
-                                    args=args)
+            dataset = sim.generate_simulation(
+                n_simulations=args.n_simulations, controller=omniscient_controller, args=args
+            )
+            print('Saving dataset for %s…' % omniscient_controller)
+            save_dataset(runs_dir_omniscient, dataset=dataset)
+            print()
 
         if args.plots_dataset:
-            print('\nGenerating plots for %s…' % omniscient_controller)
+            print('Generating plots for %s…' % omniscient_controller)
 
             plot_distance_from_goal(runs_dir_omniscient, img_dir_omniscient,
                                     'Robot distance from goal - %s' % omniscient_controller,
@@ -113,6 +84,9 @@ if __name__ == '__main__':
                          'Laser scanner response over time - %s' % omniscient_controller,
                          'laser-scanner-response-over-time-%s' % omniscient_controller)
 
+            print()
+
         if args.generate_splits:
-            dataset_path = os.path.join(runs_dir_omniscient, 'simulation.nc')
-            generate_splits(dataset_path)
+            dataset = load_dataset(runs_dir_omniscient)
+            splits = generate_splits(dataset)
+            save_dataset(runs_dir_omniscient, splits=splits)

@@ -1,5 +1,10 @@
+import os
+
 import numpy as np
 import xarray as xr
+
+from typing import Union, Tuple
+from utils import unpack_tuple
 
 
 class DatasetBuilder:
@@ -75,3 +80,64 @@ class DatasetBuilder:
 
         def update(self, **kwargs):
             self.template.update(kwargs)
+
+
+def load_dataset(runs_dir, name='simulation', *, load_dataset=True, load_splits=False)\
+        -> Union[Tuple[xr.Dataset, xr.Dataset], xr.Dataset]:
+    out = ()
+
+    if load_dataset:
+        dataset_path = os.path.join(runs_dir, '%s.nc' % name)
+        dataset = xr.open_dataset(dataset_path)
+        out = (*out, dataset)
+
+    if load_splits:
+        splits_path = os.path.join(runs_dir, '%s.splits.nc' % name)
+        splits = xr.open_dataset(splits_path)
+
+        # xarray saves DataArrays as Datasets when writing netCDF files, convert
+        # back to DataArray
+        splits = splits.split
+
+        out = (*out, splits)
+
+    return unpack_tuple(out)
+
+
+def save_dataset(runs_dir, name='simulation', *, dataset=None, splits=None):
+    if dataset:
+        dataset_path = os.path.join(runs_dir, '%s.nc' % name)
+
+        # TODO: some columns don't seems good candidates for zlib compression,
+        #       disabling it for these columns might be beneficial.
+        encoding = {key: {'zlib': True, 'complevel': 7} for key in dataset.keys()}
+
+        dataset.to_netcdf(dataset_path, encoding=encoding)
+
+    if splits:
+        splits.name = 'split'
+        splits_path = os.path.join(runs_dir, '%s.splits.nc' % name)
+        splits.to_netcdf(splits_path)
+
+
+def generate_splits(dataset, coord='run', splits=None):
+    if splits is None:
+        splits = {
+            "train": 0.7,
+            "validation": 0.15,
+            "test": 0.15
+        }
+
+    names = list(splits.keys())
+    codes = np.arange(len(splits), dtype=np.int8)
+    probs = list(splits.values())
+
+    unique, unique_inverse = np.unique(dataset[coord], return_inverse=True)
+    n_indices = unique.size
+
+    unique_assigns = np.random.choice(codes, n_indices, p=probs)
+    assigns = unique_assigns[unique_inverse]
+
+    splits = xr.DataArray(assigns, coords=dataset[coord].coords, attrs={"split_names": names})
+
+    return splits
