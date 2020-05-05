@@ -76,6 +76,32 @@ def angular_velocity(state, constant=1):
     return constant * delta_angle
 
 
+def new_linear_velocity(max_vel, k, beta=1, lambd=1):
+    """
+
+    :param max_vel:
+    :param k: curvature
+    :param beta:
+    :param lambd:
+    :return lin_vel:
+    """
+    lin_vel = max_vel / (1 + beta * pow(abs(k), lambd))
+
+    return lin_vel
+
+
+def new_angular_velocity(k, lin_vel):
+    """
+
+    :param k:
+    :param lin_vel:
+    :return:
+    """
+    ang_vel = k * lin_vel
+
+    return ang_vel
+
+
 def wheels_velocities(lin_vel, ang_vel, max_vel=np.inf, wheel_distance=15):
     """
     :param lin_vel
@@ -85,10 +111,10 @@ def wheels_velocities(lin_vel, ang_vel, max_vel=np.inf, wheel_distance=15):
     :return left_wheel_target_speed, right_wheel_target_speed
     """
 
-    left_wheel_target_speed = lin_vel - wheel_distance * ang_vel
+    left_wheel_target_speed  = lin_vel - wheel_distance * ang_vel
     right_wheel_target_speed = lin_vel + wheel_distance * ang_vel
 
-    left_wheel_target_speed = np.clip(left_wheel_target_speed, -max_vel, max_vel)
+    left_wheel_target_speed  = np.clip(left_wheel_target_speed,  -max_vel, max_vel)
     right_wheel_target_speed = np.clip(right_wheel_target_speed, -max_vel, max_vel)
 
     return left_wheel_target_speed, right_wheel_target_speed

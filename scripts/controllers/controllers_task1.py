@@ -1,5 +1,7 @@
-from kinematics import wheels_velocities, euclidean_distance, angular_velocity_inplace, angular_velocity, \
-    linear_velocity, angle_difference
+import numpy as np
+
+from kinematics import wheels_velocities, euclidean_distance, angular_velocity, \
+    linear_velocity, angle_difference, steering_angle, new_linear_velocity, new_angular_velocity
 
 
 class Controller:
@@ -28,6 +30,47 @@ class OmniscientController(Controller):
         super().__init__()
         self.max_vel = 30
 
+    @staticmethod
+    def target_polar(state):
+        """
+
+        :param state:
+        :return r, theta: polar coordinates of the target pose with respect to the actual position
+        """
+        r = euclidean_distance(state.goal_position, state.position)
+        theta = angle_difference(steering_angle(state), state.goal_angle)
+
+        return r, theta
+
+    @staticmethod
+    def virtual_controller(theta, k1=1):
+        """
+
+        :param theta:
+        :param k1: FIXME
+        :return delta_hat:
+        """
+        delta_hat = np.arctan(-k1 * theta)
+
+        return delta_hat
+
+    @staticmethod
+    def curvature(state, r, theta, delta_hat, k1=1, k2=1):
+        """
+
+        :param state:
+        :param r:
+        :param theta:
+        :param delta_hat:
+        :param k1:
+        :param k2:
+        :return k:
+        """
+        delta = steering_angle(state)
+        z = delta - delta_hat
+        k = (1 / r) * (k2 * z + (1 + (k1 / (1 + pow(k1 * theta, 2)))) * np.sin(delta))
+        return k
+
     def perform_control(self, state, dt):
         """
         Move the robots using the omniscient controller by setting the target {left,right} wheel speed
@@ -44,18 +87,29 @@ class OmniscientController(Controller):
         angle_error = abs(angle_difference(state.goal_angle, state.angle))
         angle_tolerance = 0.005
 
-        if distance_error > dist_tolerance:
-            ang_vel = angular_velocity(state)
-            lin_vel = linear_velocity(state, self.max_vel)
-        elif angle_error > angle_tolerance:
-            ang_vel = angular_velocity_inplace(state)
-            lin_vel = 0.0
-        else:
-            ang_vel = 0.0
-            lin_vel = 0.0
-            state.goal_reached = True
+        # if distance_error > dist_tolerance:
+        #     ang_vel = angular_velocity(state)
+        #     lin_vel = linear_velocity(state, self.max_vel)
+        # elif angle_error > angle_tolerance:
+        #     ang_vel = angular_velocity_inplace(state)
+        #     lin_vel = 0.0
+        # else:
+        #     ang_vel = 0.0
+        #     lin_vel = 0.0
+        #     state.goal_reached = True
 
-        left_vel, right_vel = wheels_velocities(lin_vel, ang_vel, self.max_vel)
+        r, theta = self.target_polar(state)
+        delta_hat = self.virtual_controller(theta)
+        k = self.curvature(state, r, theta, delta_hat)
+
+        lin_vel = new_linear_velocity(self.max_vel, k)
+        ang_vel = new_angular_velocity(k, lin_vel)
+        left_vel, right_vel = wheels_velocities(lin_vel, ang_vel, np.inf)
+
+        # FIXME
+        lin_vel_old = linear_velocity(state, self.max_vel)
+        ang_vel_old = angular_velocity(state)
+        left_vel_old, right_vel_old = wheels_velocities(lin_vel_old, ang_vel_old, self.max_vel)
 
         return left_vel, right_vel
 
