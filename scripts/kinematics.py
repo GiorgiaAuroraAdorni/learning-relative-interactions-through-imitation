@@ -102,7 +102,7 @@ def new_angular_velocity(k, lin_vel):
     return ang_vel
 
 
-def wheels_velocities(lin_vel, ang_vel, max_vel=np.inf, wheel_distance=15):
+def wheels_velocities(lin_vel, ang_vel, wheel_distance=15):
     """
     :param lin_vel
     :param ang_vel
@@ -113,8 +113,5 @@ def wheels_velocities(lin_vel, ang_vel, max_vel=np.inf, wheel_distance=15):
 
     left_speed  = lin_vel - wheel_distance * ang_vel
     right_speed = lin_vel + wheel_distance * ang_vel
-
-    left_speed  = np.clip(left_speed,  -max_vel, max_vel)
-    right_speed = np.clip(right_speed, -max_vel, max_vel)
 
     return left_speed, right_speed

@@ -107,7 +107,7 @@ class OmniscientController(Controller):
 
         lin_vel = new_linear_velocity(min(self.max_vel, 2 * r), k)
         ang_vel = new_angular_velocity(k, lin_vel)
-        left_vel, right_vel = wheels_velocities(lin_vel, ang_vel, np.inf)
+        left_vel, right_vel = wheels_velocities(lin_vel, ang_vel)
 
         self.lin_vel = lin_vel
         self.ang_vel = ang_vel
