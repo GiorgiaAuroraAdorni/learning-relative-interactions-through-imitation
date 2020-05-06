@@ -4,7 +4,7 @@ import os
 from dataset import load_dataset, save_dataset, generate_splits
 from plots import plot_distance_from_goal, plot_position_over_time, plot_goal_reached_distribution, plot_sensors, \
     plot_trajectory
-from simulations import GenerateSimulationData as sim
+from simulations import GenerateSimulationData as S
 from utils import check_dir
 
 
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     if args.controller == 'all' or args.controller == 'omniscient':
         if args.generate_dataset:
             print('Generating n_simulations for %s…' % omniscient_controller)
-            dataset = sim.generate_simulation(
+            dataset = S.generate_simulation(
                 n_simulations=args.n_simulations, controller=omniscient_controller, args=args
             )
             print('Saving dataset for %s…' % omniscient_controller)
