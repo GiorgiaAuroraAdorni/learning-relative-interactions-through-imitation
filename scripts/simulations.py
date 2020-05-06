@@ -5,7 +5,7 @@ import pyenki
 import torch
 from tqdm import tqdm
 
-from controllers import controllers_task1
+from controllers import task1
 from dataset import DatasetBuilder
 from geometry import Point, Transform
 from kinematics import euclidean_distance, angle_difference
@@ -27,12 +27,12 @@ class GenerateSimulationData:
         :param model:
         """
         if controller == cls.OMNISCIENT_CONTROLLER:
-            controller_factory = controllers_task1.OmniscientController
+            controller_factory = task1.OmniscientController
         elif re.match(cls.LEARNED_CONTROLLER, controller):
             net = torch.load('%s/%s' % (model_dir, model))
 
             def controller_factory():
-                return controllers_task1.LearnedController(net=net, net_input=args.net_input)
+                return task1.LearnedController(net=net, net_input=args.net_input)
         else:
             raise ValueError("Invalid value for controller")
 

@@ -15,7 +15,7 @@ from viz.controller import ControllerViz
 from viz.env import FuncAnimationEnv
 from viz.layout import GridLayoutViz
 from viz.scanner import DistanceScannerViz
-import controllers.controllers_task1 as controllers
+import controllers.task1 as controllers
 
 world = pyenki.World(200)
 
