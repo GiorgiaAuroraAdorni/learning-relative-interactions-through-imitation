@@ -5,6 +5,7 @@ from dataset import load_dataset, save_dataset, generate_splits
 from plots import plot_distance_from_goal, plot_position_over_time, plot_goal_reached_distribution, plot_sensors, \
     plot_trajectory
 from simulations import GenerateSimulationData as sim
+from neural_networks import train_net
 from utils import check_dir
 
 
@@ -94,3 +95,7 @@ if __name__ == '__main__':
             dataset = load_dataset(runs_dir_omniscient)
             splits = generate_splits(dataset)
             save_dataset(runs_dir_omniscient, splits=splits)
+
+        if args.train_net:
+            dataset, splits = load_dataset(runs_dir_omniscient, load_splits=True)
+            train_net(dataset, splits)

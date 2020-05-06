@@ -216,8 +216,8 @@ def generate_splits(dataset, coord='run', splits=None):
         }
 
     names = list(splits.keys())
-    codes = np.arange(len(splits), dtype=np.int8)
     probs = list(splits.values())
+    codes = np.arange(len(splits), dtype=np.int8)
 
     unique, unique_inverse = np.unique(dataset[coord], return_inverse=True)
     n_indices = unique.size
