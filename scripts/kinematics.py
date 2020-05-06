@@ -102,11 +102,10 @@ def new_angular_velocity(k, lin_vel):
     return ang_vel
 
 
-def wheels_velocities(lin_vel, ang_vel, wheel_distance=15):
+def to_wheels_velocities(lin_vel, ang_vel, wheel_distance=15):
     """
     :param lin_vel
     :param ang_vel
-    :param max_vel
     :param wheel_distance:
     :return left_speed, right_speed
     """
@@ -115,3 +114,10 @@ def wheels_velocities(lin_vel, ang_vel, wheel_distance=15):
     right_speed = lin_vel + wheel_distance * ang_vel
 
     return left_speed, right_speed
+
+
+def to_robot_velocities(left_speed, right_speed, wheel_distance=15):
+    lin_vel = ( left_speed + right_speed) / 2
+    ang_vel = (right_speed -  left_speed) / (2 * wheel_distance)
+
+    return lin_vel, ang_vel

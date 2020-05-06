@@ -1,15 +1,15 @@
 import numpy as np
 
-from marxbot import MyMarxbot
+from kinematics import to_robot_velocities
 from viz.env import Viz
 
 
 class ControllerViz(Viz):
-    def __init__(self, marxbot: MyMarxbot, time_window=10):
+    def __init__(self, marxbot, time_window=10):
         super().__init__()
 
         self.marxbot = marxbot
-        self.controller = marxbot.controller
+        self.marxbot_max_vel = 30
 
         self.time_window = time_window
 
@@ -28,8 +28,8 @@ class ControllerViz(Viz):
 
         labels = ["linear velocity", "angular velocity"]
         colors = ["tab:blue", "tab:orange"]
-        mins = [-self.controller.max_vel, -np.pi / 4 * self.controller.max_vel]
-        maxs = [+self.controller.max_vel, +np.pi / 4 * self.controller.max_vel]
+        mins = [-self.marxbot_max_vel, -np.pi / 4 * self.marxbot_max_vel]
+        maxs = [+self.marxbot_max_vel, +np.pi / 4 * self.marxbot_max_vel]
 
         self.plots = []
 
@@ -52,8 +52,10 @@ class ControllerViz(Viz):
             self.plots.append(plot)
 
     def _update(self):
+        robot_velocities = to_robot_velocities(*self.marxbot.wheel_target_speeds)
+
         self.readings = np.roll(self.readings, -1, axis=1)
-        self.readings[:, -1] = (self.controller.lin_vel, self.controller.ang_vel)
+        self.readings[:, -1] = robot_velocities
 
         for i in range(self.n_dims):
             self.plots[i].set_ydata(self.readings[i])

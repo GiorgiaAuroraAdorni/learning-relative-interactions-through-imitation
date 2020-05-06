@@ -143,7 +143,7 @@ class GenerateSimulationData:
 
             "position": ("axis"),
             "angle": (),
-            "wheel_target_speed": ("wheel"),
+            "wheel_target_speeds": ("wheel"),
             "scanner_distances": ("scanner_angle"),
             "scanner_image": ("scanner_angle", "channel"),
 
@@ -190,7 +190,7 @@ class GenerateSimulationData:
             step=step,
             position=marxbot.position,
             angle=marxbot.angle,
-            wheel_target_speed=[marxbot.left_wheel_target_speed, marxbot.right_wheel_target_speed],
+            wheel_target_speeds=marxbot.wheel_target_speeds,
             scanner_distances=np.array(marxbot.scanner_distances),
             scanner_image=np.array(marxbot.scanner_image),
             goal_reached=marxbot.goal_reached,

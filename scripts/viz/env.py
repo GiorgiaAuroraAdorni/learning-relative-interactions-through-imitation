@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from tqdm import tqdm
 
 from abc import ABC, abstractmethod
 from PyQt5.QtCore import QObject
@@ -55,6 +57,65 @@ class InteractiveEnv(QObject): # Should inherit from Env
     def timerEvent(self, event):
         for viz in self.vizs:
             viz.update()
+
+    # Env implementation
+
+    def get_axes(self, *args, **kwargs):
+        return self.fig.add_subplot(*args, **kwargs)
+
+    @property
+    def refresh_interval(self):
+        return self._refresh_interval
+
+
+class FuncAnimationEnv:
+    def __init__(self, vizs, datasets=None, refresh_interval=0.060):
+        self.vizs = vizs
+        self.datasets = datasets or []
+
+        self._frames = None
+        self._refresh_interval = refresh_interval
+
+    def show(self, **fig_kw):
+        self.fig = plt.figure(**fig_kw)
+
+        for viz in self.vizs:
+            viz.show(self)
+
+        self.fig.tight_layout()
+
+        interval = round(1000 * self.refresh_interval)
+
+        # Use the minimum length of the datasets to control the number of frames
+        # to be drawn. Defaults to None, which results in an infinite animation.
+        self._frames = None
+        if len(self.datasets) > 0:
+            self._frames = min(len(ds) for ds in self.datasets)
+
+        self.anim = FuncAnimation(
+            self.fig, self.update, frames=self._frames, interval=interval
+        )
+
+    def update(self, frame):
+        for dataset in self.datasets:
+            dataset.update(frame)
+
+        for viz in self.vizs:
+            viz.update()
+
+    def save(self, filename, **save_kw):
+        t = tqdm(total=self._frames, unit='frames')
+        last_frame = 0
+
+        def progress(current_frame, _total_frames):
+            nonlocal t, last_frame
+
+            t.update(current_frame - last_frame)
+            last_frame = current_frame
+
+        self.anim.save(filename, progress_callback=progress, **save_kw)
+
+        t.update(self._frames - last_frame)
 
     # Env implementation
 

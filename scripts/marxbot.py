@@ -37,3 +37,7 @@ class MyMarxbot(pyenki.Marxbot):
 
         self.left_wheel_target_speed = left_vel
         self.right_wheel_target_speed = right_vel
+
+    @property
+    def wheel_target_speeds(self):
+        return [self.left_wheel_target_speed, self.right_wheel_target_speed]

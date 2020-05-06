@@ -12,7 +12,7 @@ import pyenki
 
 from marxbot import MyMarxbot
 from viz.controller import ControllerViz
-from viz.env import InteractiveEnv
+from viz.env import FuncAnimationEnv
 from viz.layout import GridLayoutViz
 from viz.scanner import DistanceScannerViz
 import controllers.controllers_task1 as controllers
@@ -51,7 +51,7 @@ view = pyenki.WorldView(world, run_world_update=True,
 view.show()
 
 # Create the visualizations
-env = InteractiveEnv([
+env = FuncAnimationEnv([
     GridLayoutViz((1, 2), [
         DistanceScannerViz(marxbot),
         ControllerViz(marxbot)

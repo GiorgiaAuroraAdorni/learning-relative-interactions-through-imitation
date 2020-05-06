@@ -1,6 +1,6 @@
 import numpy as np
 
-from kinematics import wheels_velocities, euclidean_distance, angular_velocity, \
+from kinematics import to_wheels_velocities, euclidean_distance, angular_velocity, \
     linear_velocity, angle_difference, steering_angle, new_linear_velocity, new_angular_velocity
 
 
@@ -107,15 +107,12 @@ class OmniscientController(Controller):
 
         lin_vel = new_linear_velocity(min(self.max_vel, 2 * r), k)
         ang_vel = new_angular_velocity(k, lin_vel)
-        left_vel, right_vel = wheels_velocities(lin_vel, ang_vel)
-
-        self.lin_vel = lin_vel
-        self.ang_vel = ang_vel
+        left_vel, right_vel = to_wheels_velocities(lin_vel, ang_vel)
 
         # FIXME
         lin_vel_old = linear_velocity(state, self.max_vel)
         ang_vel_old = angular_velocity(state)
-        left_vel_old, right_vel_old = wheels_velocities(lin_vel_old, ang_vel_old, self.max_vel)
+        left_vel_old, right_vel_old = to_wheels_velocities(lin_vel_old, ang_vel_old, self.max_vel)
 
         return left_vel, right_vel
 
