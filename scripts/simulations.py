@@ -152,6 +152,8 @@ class GenerateSimulationData:
             "goal_angle_distance": ()
 
         }, coords={
+            # TODO: run and step might be converted to a MultiIndex, making it
+            #       possible to directly use them for indexing
             "run": (),
             "step": (),
 

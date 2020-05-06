@@ -126,6 +126,11 @@ def load_dataset(runs_dir, name='simulation', *, load_dataset=True, load_splits=
     if load_dataset:
         dataset_path = os.path.join(runs_dir, '%s.nc' % name)
         dataset = xr.open_dataset(dataset_path)
+
+        # Support loading old versions of the datasets, by migrating them to the
+        # current version
+        dataset = migrate_dataset(dataset)
+
         out = (*out, dataset)
 
     if load_splits:
@@ -139,6 +144,34 @@ def load_dataset(runs_dir, name='simulation', *, load_dataset=True, load_splits=
         out = (*out, splits)
 
     return unpack_tuple(out)
+
+
+# Current version number of dataset files
+CURRENT_VERSION = 2
+
+
+def migrate_dataset(dataset):
+    """
+        Support loading old versions of the datasets, by migrating them to the
+        current version.
+
+        Every time a breaking change is made to the dataset format, the current
+        version number should be increased and a migration that transforms a
+        dataset from the old format to the new one should be added to this function.
+    :param dataset: a dataset in a potentially old format
+    :return: dataset converted to the latest format
+    """
+    version = dataset.attrs.get('version', 1)
+
+    if version < 2:
+        # Migrate from v1 to v2:
+        #  * Rename wheel_target_speed to wheel_target_speeds
+        dataset = dataset.rename(wheel_target_speed='wheel_target_speeds')
+
+    # Set the current version
+    dataset.attrs['version'] = CURRENT_VERSION
+
+    return dataset
 
 
 def save_dataset(runs_dir, name='simulation', *, dataset=None, splits=None):
@@ -155,6 +188,9 @@ def save_dataset(runs_dir, name='simulation', *, dataset=None, splits=None):
         # TODO: some columns don't seems good candidates for zlib compression,
         #       disabling it for these columns might be beneficial.
         encoding = {key: {'zlib': True, 'complevel': 7} for key in dataset.keys()}
+
+        # Set the current version
+        dataset.attrs['version'] = CURRENT_VERSION
 
         dataset.to_netcdf(dataset_path, encoding=encoding)
 
