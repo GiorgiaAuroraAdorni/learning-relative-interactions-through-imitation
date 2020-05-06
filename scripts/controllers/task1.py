@@ -1,21 +1,7 @@
 import numpy as np
 
+from controllers import Controller
 from kinematics import to_wheels_velocities, euclidean_distance, angle_difference, steering_angle
-
-class Controller:
-
-    def perform_control(self, state, dt):
-        """
-        Move the robots using the omniscient controller by setting the target {left,right} wheel speed
-        each at the same value in order to moves the robot straight ahead.
-        The speed is computed as follow:
-            velocity = constant * self.signed_distance()
-        where the constant is set to 4 and the signed_distance is the distance between the current and the goal
-        position of the robot, along the current theta of the robot.
-        :param state
-        :param dt
-        """
-        raise NotImplementedError("The subclass should implement this method")
 
 
 class OmniscientController(Controller):
