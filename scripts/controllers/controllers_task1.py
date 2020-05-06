@@ -1,8 +1,6 @@
 import numpy as np
 
-from kinematics import to_wheels_velocities, euclidean_distance, angular_velocity, \
-    linear_velocity, angle_difference, steering_angle, new_linear_velocity, new_angular_velocity
-
+from kinematics import to_wheels_velocities, euclidean_distance, angle_difference, steering_angle
 
 class Controller:
 
@@ -28,7 +26,11 @@ class OmniscientController(Controller):
     """
     def __init__(self):
         super().__init__()
+
         self.max_vel = 30
+
+        self.distance_tol = 0.1
+        self.angle_tolerance = 0.005
 
     @staticmethod
     def current_state(state):
@@ -74,6 +76,32 @@ class OmniscientController(Controller):
         k = (1 / r) * (k2 * z + (1 + (k1 / (1 + pow(k1 * theta, 2)))) * np.sin(delta))
         return k
 
+    @staticmethod
+    def linear_velocity(max_vel, k, beta=1, lambd=1):
+        """
+
+        :param max_vel:
+        :param k: curvature
+        :param beta:
+        :param lambd:
+        :return lin_vel:
+        """
+        lin_vel = max_vel / (1 + beta * pow(abs(k), lambd))
+
+        return lin_vel
+
+    @staticmethod
+    def angular_velocity(k, lin_vel):
+        """
+
+        :param k:
+        :param lin_vel:
+        :return:
+        """
+        ang_vel = k * lin_vel
+
+        return ang_vel
+
     def perform_control(self, state, dt):
         """
         Move the robots using the omniscient controller by setting the target {left,right} wheel speed
@@ -85,34 +113,22 @@ class OmniscientController(Controller):
         :param state
         :param dt
         """
-        distance_error = euclidean_distance(state.goal_position, state.position)
-        dist_tolerance = 0.1
-        angle_error = abs(angle_difference(state.goal_angle, state.angle))
-        angle_tolerance = 0.005
-
-        # if distance_error > dist_tolerance:
-        #     ang_vel = angular_velocity(state)
-        #     lin_vel = linear_velocity(state, self.max_vel)
-        # elif angle_error > angle_tolerance:
-        #     ang_vel = angular_velocity_inplace(state)
-        #     lin_vel = 0.0
-        # else:
-        #     ang_vel = 0.0
-        #     lin_vel = 0.0
-        #     state.goal_reached = True
 
         r, theta, delta = self.current_state(state)
         delta_hat = self.virtual_controller(theta)
         k = self.curvature(r, theta, delta, delta_hat)
 
-        lin_vel = new_linear_velocity(min(self.max_vel, 2 * r), k)
-        ang_vel = new_angular_velocity(k, lin_vel)
+        lin_vel = self.linear_velocity(min(self.max_vel, 2 * r), k)
+        ang_vel = self.angular_velocity(k, lin_vel)
         left_vel, right_vel = to_wheels_velocities(lin_vel, ang_vel)
 
-        # FIXME
-        lin_vel_old = linear_velocity(state, self.max_vel)
-        ang_vel_old = angular_velocity(state)
-        left_vel_old, right_vel_old = to_wheels_velocities(lin_vel_old, ang_vel_old, self.max_vel)
+        # Detect when the robot reaches the goal
+        distance_error = r
+        # Equivalent to state.goal_angle - state.angle
+        angle_error = abs(delta - theta)
+
+        if distance_error < self.distance_tol and angle_error < self.angle_tolerance:
+            state.goal_reached = True
 
         return left_vel, right_vel
 
