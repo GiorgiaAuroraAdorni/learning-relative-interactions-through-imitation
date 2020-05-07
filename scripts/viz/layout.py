@@ -1,13 +1,11 @@
-import matplotlib.pyplot as plt
-
-from viz.env import Viz, Env
+from viz.env import Viz, Env, PassthroughEnv
 
 
-class _SubplotEnv(Env):
+class _SubplotEnv(PassthroughEnv):
     def __init__(self, gridspec, env):
-        self.gridspec = gridspec
-        self.env = env
+        super().__init__(env)
 
+        self.gridspec = gridspec
         self.current_subplot = None
 
     def set_subplot(self, i):
@@ -15,15 +13,8 @@ class _SubplotEnv(Env):
 
     # Env implementation
 
-    def get_figure(self):
-        return self.env.get_figure()
-
     def get_axes(self, *args, **kwargs):
-        return self.env.get_axes(*self.gridspec, self.current_subplot, *args, **kwargs)
-
-    @property
-    def refresh_interval(self) -> float:
-        return self.env.refresh_interval
+        return super().get_axes(*self.gridspec, self.current_subplot, *args, **kwargs)
 
 
 class GridLayoutViz(Viz):
@@ -34,13 +25,16 @@ class GridLayoutViz(Viz):
 
     def _show(self, env: Env):
         env = _SubplotEnv(self.gridspec, env)
+        fig = env.get_figure()
 
         for i, viz in enumerate(self.vizs):
             env.set_subplot(i + 1)
             viz.show(env)
 
+        # Ensure that the layout of the subplots is consistent
+        fig.tight_layout()
+
         if self.suptitle:
-            fig = env.get_figure()
             fig.suptitle(self.suptitle, fontsize=12, weight='bold')
             self._make_space_above(fig)
 
@@ -50,8 +44,6 @@ class GridLayoutViz(Viz):
         :param fig:
         :param topmargin:
         """
-        fig.tight_layout()
-
         fig.text(0.07, 0.9, 'Laser scanner response over time', va='top', weight='bold', fontsize=12)
         fig.text(0.58, 0.9, 'Control response over time',       va='top', weight='bold', fontsize=12)
 
@@ -61,7 +53,6 @@ class GridLayoutViz(Viz):
         fig_h = h - (1 - s.top) * h + topmargin
         fig.subplots_adjust(bottom=s.bottom * h / fig_h, top=1 - topmargin / fig_h)
         fig.set_figheight(fig_h)
-
 
     def _update(self):
         for viz in self.vizs:

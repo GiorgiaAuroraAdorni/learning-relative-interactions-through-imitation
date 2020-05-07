@@ -117,7 +117,7 @@ def train_net(dataset, splits, n_epochs=100, lr=0.01, batch_size=1024):
 
             l += loss
 
-        l /= len(train_loader) * batch_size
+        l /= len(train_loader)
 
         vmetrics = validate_net(net, criterion, valid_loader, device)
 

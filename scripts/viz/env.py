@@ -1,25 +1,41 @@
-from abc import ABC, abstractmethod
+from typing import Optional
 
-import matplotlib.pyplot as plt
 import xarray as xr
-from PyQt5.QtCore import QObject
+import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from tqdm import tqdm
+
+from abc import ABC, abstractmethod
 
 
 class Env(ABC):
     @abstractmethod
-    def get_figure(self):
+    def get_figure(self) -> plt.Figure:
         pass
 
     @abstractmethod
-    def get_axes(self, *args, **kwargs):
+    def get_axes(self, *args, **kwargs) -> plt.Axes:
         pass
 
     @property
     @abstractmethod
     def refresh_interval(self) -> float:
         pass
+
+
+class PassthroughEnv(Env):
+    def __init__(self, env: Env):
+        self.env = env
+
+    def get_figure(self):
+        return self.env.get_figure()
+
+    def get_axes(self, *args, **kwargs):
+        return self.env.get_axes(*args, **kwargs)
+
+    @property
+    def refresh_interval(self) -> float:
+        return self.env.refresh_interval
 
 
 class Viz(ABC):
@@ -38,45 +54,6 @@ class Viz(ABC):
         self._update()
 
 
-# Should inherit from Env, but doesn't because ABC and QObject have incompatible metaclasses
-class InteractiveEnv(QObject):
-    def __init__(self, vizs, refresh_interval=0.060):
-        """
-        :param Sequence[Viz] vizs: sequence of visualizations to display
-        :param float refresh_interval: refresh interval in ms
-        """
-        super().__init__()
-
-        self.vizs = vizs
-        self._refresh_interval = refresh_interval
-
-    def show(self, **fig_kw):
-        self.fig = plt.figure(**fig_kw)
-
-        for viz in self.vizs:
-            viz.show(self)
-
-        self.fig.tight_layout()
-
-        self.startTimer(int(1000 * self.refresh_interval))
-
-    def timerEvent(self, event):
-        for viz in self.vizs:
-            viz.update()
-
-    # Env implementation
-
-    def get_figure(self):
-        return self.fig
-
-    def get_axes(self, *args, **kwargs):
-        return self.fig.add_subplot(*args, **kwargs)
-
-    @property
-    def refresh_interval(self):
-        return self._refresh_interval
-
-
 class FuncAnimationEnv(Env):
     def __init__(self, vizs, datasets=None, refresh_interval=0.060):
         self.vizs = vizs
@@ -85,8 +62,8 @@ class FuncAnimationEnv(Env):
         self._frames = None
         self._refresh_interval = refresh_interval
 
-        self.fig = None
-        self.anim = None
+        self.fig: Optional[plt.Figure] = None
+        self.anim: Optional[FuncAnimation] = None
 
     def show(self, **fig_kw):
         self.fig = plt.figure(**fig_kw)

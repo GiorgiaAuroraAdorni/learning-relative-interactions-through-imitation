@@ -20,7 +20,6 @@ class ControllerViz(Viz):
         self.ax.set_xlabel("time (s)")
         self.ax.set_xlim(-self.time_window, 0)
         self.ax.grid('both')
-        self.ax.tick_params(labelsize=8)
 
         self.n_dims = 2
         self.n_samples = round(self.time_window / env.refresh_interval)
@@ -43,6 +42,7 @@ class ControllerViz(Viz):
 
             ax.set_ylabel(labels[i], color=colors[i])
             ax.tick_params(axis='y', labelcolor=colors[i])
+            ax.tick_params(labelsize=8)
 
             plot = ax.plot(self.time, self.readings[i], color=colors[i])[0]
 
