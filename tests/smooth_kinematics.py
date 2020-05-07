@@ -37,7 +37,7 @@ else:
     print("Running within an existing QApplication")
 
 # Configure Matplotlib to coexist with the PyEnki Viewer: switch to the Qt5
-# backend and enable interative mode
+# backend and enable interactive mode
 matplotlib.use("QT5Agg")
 plt.ion()
 

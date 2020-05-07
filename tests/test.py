@@ -48,7 +48,7 @@ view = pyenki.WorldView(world, run_world_update=True, cam_position=(0, 0),
 view.show()
 
 # Configure Matplotlib to coexist with the PyEnki Viewer: switch to the Qt5
-# backend and enable interative mode
+# backend and enable interactive mode
 matplotlib.use("QT5Agg")
 plt.ion()
 

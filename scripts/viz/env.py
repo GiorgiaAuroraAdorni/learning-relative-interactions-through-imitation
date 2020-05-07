@@ -137,7 +137,7 @@ class FuncAnimationEnv(Env):
 
     def save(self, filename, **save_kw):
         assert self.anim, "Must call show(...) before saving the video."
-        
+
         t = tqdm(total=self._frames, unit='frames')
         last_frame = 0
 
