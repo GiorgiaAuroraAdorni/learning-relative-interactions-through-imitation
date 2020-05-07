@@ -66,10 +66,13 @@ class FuncAnimationEnv(Env):
         self.anim: Optional[FuncAnimation] = None
 
     def show(self, **fig_kw):
-        self.fig = plt.figure(**fig_kw)
+        self.fig = plt.figure(constrained_layout=True, **fig_kw)
 
         for viz in self.vizs:
             viz.show(self)
+
+        self.fig.execute_constrained_layout()
+        self.fig.set_constrained_layout(False)
 
         # Use the minimum length of the datasets to control the number of frames
         # to be drawn. Defaults to None, which results in an infinite animation.

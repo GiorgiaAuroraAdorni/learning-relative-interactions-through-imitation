@@ -15,7 +15,7 @@ class ControllerViz(Viz):
 
     def _show(self, env):
         self.ax = env.get_axes()
-        # self.ax.set_title('Laser scanner response over time', weight='bold', fontsize=12)
+        self.ax.set_title('Control signals over time')
 
         self.ax.set_xlabel("time (s)")
         self.ax.set_xlim(-self.time_window, 0)

@@ -55,7 +55,7 @@ env = FuncAnimationEnv([
     GridLayoutViz((1, 2), [
         DistanceScannerViz(marxbot),
         ControllerViz(marxbot)
-    ])
+    ], suptitle='Smooth Kinematics Demo')
 ])
 env.show(figsize=(9, 4))
 
