@@ -250,15 +250,15 @@ def plot_sensors(runs_dir, video_dir, title, filename):
     dataset_states = load_dataset(runs_dir)
     run_states = dataset_states.where(dataset_states.run == 0, drop=True)
 
-    marxbot = viz.AnimationDataset(run_states)
+    marxbot = viz.DatasetSource(run_states)
 
     # Create the visualizations
     env = viz.FuncAnimationEnv([
-        viz.GridLayoutViz((1, 2), [
-            viz.DistanceScannerViz(marxbot),
-            viz.ControllerViz(marxbot)
+        viz.GridLayout((1, 2), [
+            viz.LaserScannerViz(marxbot),
+            viz.ControlSignalsViz(marxbot)
         ], suptitle=title)
-    ], datasets=[marxbot])
+    ], sources=[marxbot])
     env.show(figsize=(9, 4))
 
     video_path = os.path.join(video_dir, '%s.mp4' % filename)

@@ -4,7 +4,7 @@ from kinematics import to_robot_velocities
 from viz.env import Viz
 
 
-class ControllerViz(Viz):
+class ControlSignalsViz(Viz):
     def __init__(self, marxbot, time_window=10):
         super().__init__()
 

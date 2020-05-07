@@ -10,12 +10,9 @@ from PyQt5.QtWidgets import QApplication
 ## Setup the simulation
 import pyenki
 
-from marxbot import MyMarxbot
-from viz.controller import ControllerViz
-from viz.env import FuncAnimationEnv
-from viz.layout import GridLayoutViz
-from viz.scanner import DistanceScannerViz
+import viz
 import controllers.controllers_task1 as controllers
+from marxbot import MyMarxbot
 
 world = pyenki.World(200)
 
@@ -51,10 +48,10 @@ view = pyenki.WorldView(world, run_world_update=True,
 view.show()
 
 # Create the visualizations
-env = FuncAnimationEnv([
-    GridLayoutViz((1, 2), [
-        DistanceScannerViz(marxbot),
-        ControllerViz(marxbot)
+env = viz.FuncAnimationEnv([
+    viz.GridLayout((1, 2), [
+        viz.LaserScannerViz(marxbot),
+        viz.ControlSignalsViz(marxbot)
     ], suptitle='Smooth Kinematics Demo')
 ])
 env.show(figsize=(9, 4))

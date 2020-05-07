@@ -9,6 +9,10 @@ from abc import ABC, abstractmethod
 
 
 class Env(ABC):
+    """
+    A class that handles the creation of `Figure` and `Axes` objects and manages
+    the updates of the `Viz` objects.
+    """
     @abstractmethod
     def get_figure(self) -> plt.Figure:
         pass
@@ -24,6 +28,10 @@ class Env(ABC):
 
 
 class PassthroughEnv(Env):
+    """
+    An Env that simply forwards every call to a parent environment. Useful as a
+    building block for environments that only override some part of the Env interface.
+    """
     def __init__(self, env: Env):
         self.env = env
 
@@ -54,10 +62,44 @@ class Viz(ABC):
         self._update()
 
 
+class Source(ABC):
+    """
+    A class that facilitates supplying dynamic data to a visualization.
+
+    A `Source` should be passed as input parameter to the corresponding `Viz`.
+    Furthermore, it should be passed to the `sources` parameter when constructing
+    the `Env`.
+
+    At the beginning of each frame, the `Env` will call `update(frame)` on every
+    `Source` so that they can prepare the correct data, then it will call
+    `update()` on every `Viz` to update their plots with the new data.
+    """
+    @abstractmethod
+    def _update(self, frame):
+        pass
+
+    @abstractmethod
+    def __len__(self):
+        pass
+
+    def update(self, frame):
+        self._update(frame)
+
+
 class FuncAnimationEnv(Env):
-    def __init__(self, vizs, datasets=None, refresh_interval=0.060):
+    """
+    An Env based on `matplotlib.animation.FuncAnimation`. It can both display
+    dynamic figures in a GUI interface and save them to a video file.
+
+    To display the figures interactively call the `show(...)` method. Any keyword
+    parameter is forwarded to the constructor of `Figure`.
+
+    To save a video file with the animation, call the `save(...)` method after
+    calling `show`.
+    """
+    def __init__(self, vizs, sources=None, refresh_interval=0.060):
         self.vizs = vizs
-        self.datasets = datasets or []
+        self.sources = sources or []
 
         self._frames = None
         self._refresh_interval = refresh_interval
@@ -74,11 +116,11 @@ class FuncAnimationEnv(Env):
         self.fig.execute_constrained_layout()
         self.fig.set_constrained_layout(False)
 
-        # Use the minimum length of the datasets to control the number of frames
+        # Use the minimum length of the sources to control the number of frames
         # to be drawn. Defaults to None, which results in an infinite animation.
         self._frames = None
-        if len(self.datasets) > 0:
-            self._frames = min(len(ds) for ds in self.datasets)
+        if len(self.sources) > 0:
+            self._frames = min(len(ds) for ds in self.sources)
 
         interval = round(1000 * self.refresh_interval)
 
@@ -87,13 +129,15 @@ class FuncAnimationEnv(Env):
         )
 
     def update(self, frame):
-        for dataset in self.datasets:
-            dataset.update(frame)
+        for sources in self.sources:
+            sources.update(frame)
 
         for viz in self.vizs:
             viz.update()
 
     def save(self, filename, **save_kw):
+        assert self.anim, "Must call show(...) before saving the video."
+        
         t = tqdm(total=self._frames, unit='frames')
         last_frame = 0
 
@@ -120,14 +164,20 @@ class FuncAnimationEnv(Env):
         return self._refresh_interval
 
 
-class AnimationDataset:
+class DatasetSource(Source):
+    """
+    A Source that selects one sample per frame from the supplied dataset.
+
+    All the variables contained in the dataset that have dimension `dim` are
+    available on the resulting instance.
+    """
     def __init__(self, dataset: xr.Dataset, dim="sample"):
         self.dataset = dataset
         self.dim = dim
 
         self.current_sample = None
 
-    def update(self, frame):
+    def _update(self, frame):
         self.current_sample = self.dataset[{self.dim: frame}]
 
     def __len__(self):

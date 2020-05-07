@@ -17,7 +17,7 @@ class _SubplotEnv(PassthroughEnv):
         return super().get_axes(*self.gridspec, self.current_subplot, *args, **kwargs)
 
 
-class GridLayoutViz(Viz):
+class GridLayout(Viz):
     def __init__(self, gridspec, vizs, suptitle=None):
         self.gridspec = gridspec
         self.vizs = vizs

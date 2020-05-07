@@ -9,7 +9,7 @@ from PyQt5.QtCore import QObject
 from PyQt5.QtWidgets import QApplication
 
 import pyenki
-from viz.scanner import DistanceScannerViz
+from viz import LaserScannerViz
 
 world = pyenki.World(200)
 
@@ -53,7 +53,7 @@ matplotlib.use("QT5Agg")
 plt.ion()
 
 # Create the distance scanner visualization
-viz = DistanceScannerViz(marxbot)
+viz = LaserScannerViz(marxbot)
 viz.show()
 
 # Start the event loop

@@ -6,7 +6,7 @@ from typing import cast
 from viz.env import Viz, Env
 
 
-class DistanceScannerViz(Viz):
+class LaserScannerViz(Viz):
     def __init__(self, marxbot, sensor_range=150.0):
         self.marxbot = marxbot
         self.marxbot_radius = 8.5
