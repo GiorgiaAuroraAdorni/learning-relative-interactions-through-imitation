@@ -15,6 +15,9 @@ class _SubplotEnv(Env):
 
     # Env implementation
 
+    def get_figure(self):
+        return self.env.get_figure()
+
     def get_axes(self, *args, **kwargs):
         return self.env.get_axes(*self.gridspec, self.current_subplot, *args, **kwargs)
 
@@ -24,9 +27,10 @@ class _SubplotEnv(Env):
 
 
 class GridLayoutViz(Viz):
-    def __init__(self, gridspec, vizs):
+    def __init__(self, gridspec, vizs, suptitle=None):
         self.gridspec = gridspec
         self.vizs = vizs
+        self.suptitle = suptitle
 
     def _show(self, env: Env):
         env = _SubplotEnv(self.gridspec, env)
@@ -34,6 +38,27 @@ class GridLayoutViz(Viz):
         for i, viz in enumerate(self.vizs):
             env.set_subplot(i + 1)
             viz.show(env)
+
+        if self.suptitle:
+            fig = env.get_figure()
+            fig.suptitle(self.suptitle, fontsize=12, weight='bold')
+            self._make_space_above(fig)
+
+    def _make_space_above(self, fig, topmargin=1):
+        """
+        Increase figure size to make topmargin (in inches) space for titles, without changing the axes sizes
+        :param fig:
+        :param topmargin:
+        """
+        fig.tight_layout()
+
+        s = fig.subplotpars
+        w, h = fig.get_size_inches()
+
+        fig_h = h - (1 - s.top) * h + topmargin
+        fig.subplots_adjust(bottom=s.bottom * h / fig_h, top=1 - topmargin / fig_h)
+        fig.set_figheight(fig_h)
+
 
     def _update(self):
         for viz in self.vizs:

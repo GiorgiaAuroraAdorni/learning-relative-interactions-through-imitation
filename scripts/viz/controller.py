@@ -15,10 +15,12 @@ class ControllerViz(Viz):
 
     def _show(self, env):
         self.ax = env.get_axes()
+        self.ax.set_title('Laser scanner response over time', weight='bold', fontsize=12)
 
         self.ax.set_xlabel("time (s)")
         self.ax.set_xlim(-self.time_window, 0)
         self.ax.grid('both')
+        self.ax.tick_params(labelsize=8)
 
         self.n_dims = 2
         self.n_samples = round(self.time_window / env.refresh_interval)

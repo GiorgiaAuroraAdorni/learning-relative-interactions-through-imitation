@@ -8,6 +8,10 @@ from PyQt5.QtCore import QObject
 
 class Env(ABC):
     @abstractmethod
+    def get_figure(self):
+        pass
+
+    @abstractmethod
     def get_axes(self, *args, **kwargs):
         pass
 
@@ -33,7 +37,8 @@ class Viz(ABC):
         self._update()
 
 
-class InteractiveEnv(QObject): # Should inherit from Env
+# Should inherit from Env, but doesn't because ABC and QObject have incompatible metaclasses
+class InteractiveEnv(QObject):
     def __init__(self, vizs, refresh_interval=0.060):
         """
         :param Sequence[Viz] vizs: sequence of visualizations to display
@@ -60,6 +65,9 @@ class InteractiveEnv(QObject): # Should inherit from Env
 
     # Env implementation
 
+    def get_figure(self):
+        return self.fig
+
     def get_axes(self, *args, **kwargs):
         return self.fig.add_subplot(*args, **kwargs)
 
@@ -68,7 +76,7 @@ class InteractiveEnv(QObject): # Should inherit from Env
         return self._refresh_interval
 
 
-class FuncAnimationEnv:
+class FuncAnimationEnv(Env):
     def __init__(self, vizs, datasets=None, refresh_interval=0.060):
         self.vizs = vizs
         self.datasets = datasets or []
@@ -76,21 +84,22 @@ class FuncAnimationEnv:
         self._frames = None
         self._refresh_interval = refresh_interval
 
+        self.fig = None
+        self.anim = None
+
     def show(self, **fig_kw):
         self.fig = plt.figure(**fig_kw)
 
         for viz in self.vizs:
             viz.show(self)
 
-        self.fig.tight_layout()
-
-        interval = round(1000 * self.refresh_interval)
-
         # Use the minimum length of the datasets to control the number of frames
         # to be drawn. Defaults to None, which results in an infinite animation.
         self._frames = None
         if len(self.datasets) > 0:
             self._frames = min(len(ds) for ds in self.datasets)
+
+        interval = round(1000 * self.refresh_interval)
 
         self.anim = FuncAnimation(
             self.fig, self.update, frames=self._frames, interval=interval
@@ -118,6 +127,9 @@ class FuncAnimationEnv:
         t.update(self._frames - last_frame)
 
     # Env implementation
+
+    def get_figure(self):
+        return self.fig
 
     def get_axes(self, *args, **kwargs):
         return self.fig.add_subplot(*args, **kwargs)
