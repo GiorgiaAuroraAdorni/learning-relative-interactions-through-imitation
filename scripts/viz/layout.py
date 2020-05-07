@@ -52,6 +52,9 @@ class GridLayoutViz(Viz):
         """
         fig.tight_layout()
 
+        fig.text(0.07, 0.9, 'Laser scanner response over time', va='top', weight='bold', fontsize=12)
+        fig.text(0.58, 0.9, 'Control response over time',       va='top', weight='bold', fontsize=12)
+
         s = fig.subplotpars
         w, h = fig.get_size_inches()
 

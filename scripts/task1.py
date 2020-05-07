@@ -86,8 +86,8 @@ if __name__ == '__main__':
                             'robot-trajectory-%s' % omniscient_controller)
 
             plot_sensors(runs_dir_omniscient, video_dir_omniscient,
-                         'Laser scanner response over time - %s' % omniscient_controller,
-                         'laser-scanner-response-over-time-%s' % omniscient_controller)
+                         '%s' % omniscient_controller,
+                         'sensors-control-response-over-time-%s' % omniscient_controller)
 
             print()
 

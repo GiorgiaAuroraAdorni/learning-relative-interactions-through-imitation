@@ -8,7 +8,12 @@ from matplotlib.animation import FuncAnimation
 
 from dataset import load_dataset
 from geometry import Point, Transform
+from tests.dataset_visualization import AnimationDataset
 from utils import unpack
+from viz.controller import ControllerViz
+from viz.env import FuncAnimationEnv
+from viz.layout import GridLayoutViz
+from viz.scanner import DistanceScannerViz
 
 
 def save_visualisation(filename, img_dir, make_space=False, axes=None):
@@ -251,37 +256,16 @@ def plot_sensors(runs_dir, video_dir, title, filename):
     dataset_states = load_dataset(runs_dir)
     run_states = dataset_states.where(dataset_states.run == 0, drop=True)
 
-    angles = np.linspace(-np.pi, np.pi, 180)
-    robot_radius = 8.5
-    sensor_range = 150.0
-    distances = np.full_like(angles, sensor_range)
+    marxbot = AnimationDataset(run_states)
 
-    yticks = np.arange(50, sensor_range * 2, 50)
+    # Create the visualizations
+    env = FuncAnimationEnv([
+        GridLayoutViz((1, 2), [
+            DistanceScannerViz(marxbot),
+            ControllerViz(marxbot)
+        ], suptitle=title)
+    ], datasets=[marxbot])
+    env.show(figsize=(9, 4))
 
-    fig = plt.figure()
-    fig.suptitle(title, fontsize=12, weight='bold')
-    ax = fig.add_subplot(111, polar=True)
-    ax.set_yticks(yticks)
-    ax.set_ylim(0, 300)
-    ax.tick_params(labelsize=8)
-
-    scatter = ax.scatter(angles, distances, marker=".", zorder=2)
-    ln, = ax.plot(angles, distances, "-k", zorder=1)
-    ax.fill_between(angles, robot_radius, color=[0.0, 0.0, 1.0, 0.6])
-    make_space_above(ax, topmargin=1)
-
-    def update(i):
-        distances = run_states.scanner_distances[i]
-        colors = run_states.scanner_image[i]
-
-        ln.set_ydata(distances)
-
-        offsets = np.stack([angles, distances], axis=-1)
-        scatter.set_offsets(offsets)
-        scatter.set_facecolors(colors)
-
-    ani = FuncAnimation(fig, update, frames=run_states.step, blit=False)
-
-    video = os.path.join(video_dir, '%s.mp4' % filename)
-    ani.save(video, dpi=300)
-    plt.close()
+    video_path = os.path.join(video_dir, '%s.mp4' % filename)
+    env.save(video_path, dpi=300)

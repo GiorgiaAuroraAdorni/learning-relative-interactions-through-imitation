@@ -23,7 +23,6 @@ class DistanceScannerViz(Viz):
         self.ax.tick_params(labelsize=8)
 
         self.plot = self.ax.plot(self.angles, self.distances, "-k", zorder=1)[0]
-        self.ax.text(0.5, 0.5, 'Laser scanner response over time', ha='left', va='center')
         self.scatter = self.ax.scatter(self.angles, self.distances, marker=".", fc='k', zorder=2)
 
         self.ax.fill_between(self.angles, self.marxbot_radius, color=colors.to_rgba("b", alpha=0.6))
