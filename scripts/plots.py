@@ -3,17 +3,11 @@ import os
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import numpy as np
-import xarray as xr
-from matplotlib.animation import FuncAnimation
 
 from dataset import load_dataset
 from geometry import Point, Transform
-from tests.dataset_visualization import AnimationDataset
 from utils import unpack
-from viz.controller import ControllerViz
-from viz.env import FuncAnimationEnv
-from viz.layout import GridLayoutViz
-from viz.scanner import DistanceScannerViz
+import viz
 
 
 def save_visualisation(filename, img_dir, make_space=False, axes=None):
@@ -256,13 +250,13 @@ def plot_sensors(runs_dir, video_dir, title, filename):
     dataset_states = load_dataset(runs_dir)
     run_states = dataset_states.where(dataset_states.run == 0, drop=True)
 
-    marxbot = AnimationDataset(run_states)
+    marxbot = viz.AnimationDataset(run_states)
 
     # Create the visualizations
-    env = FuncAnimationEnv([
-        GridLayoutViz((1, 2), [
-            DistanceScannerViz(marxbot),
-            ControllerViz(marxbot)
+    env = viz.FuncAnimationEnv([
+        viz.GridLayoutViz((1, 2), [
+            viz.DistanceScannerViz(marxbot),
+            viz.ControllerViz(marxbot)
         ], suptitle=title)
     ], datasets=[marxbot])
     env.show(figsize=(9, 4))

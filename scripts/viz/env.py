@@ -1,9 +1,10 @@
+from abc import ABC, abstractmethod
+
 import matplotlib.pyplot as plt
+import xarray as xr
+from PyQt5.QtCore import QObject
 from matplotlib.animation import FuncAnimation
 from tqdm import tqdm
-
-from abc import ABC, abstractmethod
-from PyQt5.QtCore import QObject
 
 
 class Env(ABC):
@@ -137,3 +138,20 @@ class FuncAnimationEnv(Env):
     @property
     def refresh_interval(self):
         return self._refresh_interval
+
+
+class AnimationDataset:
+    def __init__(self, dataset: xr.Dataset, dim="sample"):
+        self.dataset = dataset
+        self.dim = dim
+
+        self.current_sample = None
+
+    def update(self, frame):
+        self.current_sample = self.dataset[{self.dim: frame}]
+
+    def __len__(self):
+        return self.dataset.sizes[self.dim]
+
+    def __getattr__(self, name):
+        return getattr(self.current_sample, name)
