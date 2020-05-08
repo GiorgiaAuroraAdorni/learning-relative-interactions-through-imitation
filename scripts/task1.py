@@ -2,10 +2,6 @@ import argparse
 import os
 
 from dataset import load_dataset, save_dataset, generate_splits
-from plots import plot_distance_from_goal, plot_position_over_time, plot_goal_reached_distribution, plot_sensors, \
-    plot_trajectory, plot_initial_positions
-from simulations import GenerateSimulationData as sim
-from neural_networks import train_net
 from utils import check_dir
 
 
@@ -59,6 +55,8 @@ if __name__ == '__main__':
 
     if args.controller == 'all' or args.controller == 'omniscient':
         if args.generate_dataset:
+            from simulations import GenerateSimulationData as sim
+
             print('Generating n_simulations for %s…' % omniscient_controller)
             dataset = sim.generate_simulation(
                 n_simulations=args.n_simulations, controller=omniscient_controller, args=args
@@ -68,6 +66,9 @@ if __name__ == '__main__':
             print()
 
         if args.plots_dataset:
+            from plots import plot_distance_from_goal, plot_position_over_time, \
+                plot_goal_reached_distribution, plot_sensors, plot_trajectory, plot_initial_positions
+
             print('Generating plots for %s…' % omniscient_controller)
 
             plot_distance_from_goal(runs_dir_omniscient, img_dir_omniscient,
@@ -100,5 +101,7 @@ if __name__ == '__main__':
             save_dataset(runs_dir_omniscient, splits=splits)
 
         if args.train_net:
+            from neural_networks import train_net
+
             dataset, splits = load_dataset(runs_dir_omniscient, load_splits=True)
             train_net(dataset, splits)

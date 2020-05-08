@@ -197,7 +197,7 @@ class Transform(Vector):
         ])
 
     @staticmethod
-    def scale(self, sx, sy=None):
+    def scale(sx, sy=None):
         if not sy:
             sy = sx
 

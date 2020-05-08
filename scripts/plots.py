@@ -196,6 +196,20 @@ def plot_trajectory(runs_dir, img_dir, title, filename):
 
     ax.grid()
 
+    obj_points = Point.from_list([
+        (-0.5, 1, 1), (1.5, 1, 1), (1.5, 0.5, 1),  (0, 0.5, 1),
+        (0, -0.5, 1), (1.5, -0.5, 1), (1.5, -1, 1), (-0.5, -1, 1)
+    ])
+
+    obj_tform = Transform.scale(20)
+    obj_points = obj_points.transformed(obj_tform).to_euclidean().T
+
+    ax.add_patch(plt.Polygon(obj_points,
+                             facecolor=colors.to_rgba([0, 0.5, 0.5], alpha=0.5),
+                             edgecolor=[0, 0.5, 0.5],
+                             linewidth=1.5,
+                             label='docking station'))
+
     points = Point.from_list([
         Point.ORIGIN,
         [1, -3, 1], [1, 3, 1], [6, 0, 1]
@@ -227,7 +241,8 @@ def plot_trajectory(runs_dir, img_dir, title, filename):
     plt.plot(x_position, y_position, color='black', label='trajectory')
 
     ax.set_ylim(-init_position[1] + 20, init_position[1] + 20)
-    ax.set_xlim(0, init_position[0] * 2)
+    ax.set_ylim(-200, 200)
+    ax.set_xlim(-300, 300)
     ax.set_aspect('equal')
 
     plt.legend()
