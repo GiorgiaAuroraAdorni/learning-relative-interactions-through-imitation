@@ -179,6 +179,14 @@ class Transform(Vector):
     identity = np.eye(3)
 
     @staticmethod
+    def translate(tx, ty):
+        return Transform([
+            [1, 0, tx],
+            [0, 1, ty],
+            [0, 0,  1],
+        ])
+
+    @staticmethod
     def rotate(theta):
         s, c = np.sin(theta), np.cos(theta)
 
@@ -189,11 +197,14 @@ class Transform(Vector):
         ])
 
     @staticmethod
-    def translate(tx, ty):
+    def scale(self, sx, sy=None):
+        if not sy:
+            sy = sx
+
         return Transform([
-            [1, 0, tx],
-            [0, 1, ty],
-            [0, 0,  1],
+            [sx,  0, 0],
+            [ 0, sy, 0],
+            [ 0,  0, 1],
         ])
 
     @staticmethod
