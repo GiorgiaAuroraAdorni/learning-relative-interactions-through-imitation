@@ -3,7 +3,7 @@ import os
 
 from dataset import load_dataset, save_dataset, generate_splits
 from plots import plot_distance_from_goal, plot_position_over_time, plot_goal_reached_distribution, plot_sensors, \
-    plot_trajectory
+    plot_trajectory, plot_initial_positions
 from simulations import GenerateSimulationData as sim
 from neural_networks import train_net
 from utils import check_dir
@@ -88,6 +88,9 @@ if __name__ == '__main__':
             plot_sensors(runs_dir_omniscient, video_dir_omniscient,
                          '%s' % omniscient_controller,
                          'sensors-control-response-over-time-%s' % omniscient_controller)
+
+            plot_initial_positions(runs_dir_omniscient, img_dir_omniscient, 'Initial positions',
+                                   'initial-positions')
 
             print()
 

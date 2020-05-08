@@ -263,3 +263,22 @@ def plot_sensors(runs_dir, video_dir, title, filename):
 
     video_path = os.path.join(video_dir, '%s.mp4' % filename)
     env.save(video_path, dpi=300)
+
+
+def plot_initial_positions(runs_dir, img_dir, title, filename):
+    dataset_states = load_dataset(runs_dir)
+    step_states = dataset_states.where(dataset_states.step == 0, drop=True)
+    x, y = unpack(step_states.initial_position, 'axis')
+
+    fig, ax = plt.subplots(figsize=(7.8, 4.8))
+
+    ax.scatter(x, y, alpha=0.2)
+    ax.axis('equal')
+
+    # FIXME add labels
+    fig.suptitle(title, fontsize=14, weight='bold')
+
+    fig.tight_layout()
+    fig.subplots_adjust(hspace=0.4)
+
+    save_visualisation(filename, img_dir, make_space=True, axes=ax)
