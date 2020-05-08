@@ -182,7 +182,7 @@ def save_dataset(runs_dir, name='simulation', *, dataset=None, splits=None):
     :param dataset:
     :param splits:
     """
-    if dataset:
+    if dataset is not None:
         dataset_path = os.path.join(runs_dir, '%s.nc' % name)
 
         # TODO: some columns don't seems good candidates for zlib compression,
@@ -194,7 +194,7 @@ def save_dataset(runs_dir, name='simulation', *, dataset=None, splits=None):
 
         dataset.to_netcdf(dataset_path, encoding=encoding)
 
-    if splits:
+    if splits is not None:
         splits.name = 'split'
         splits_path = os.path.join(runs_dir, '%s.splits.nc' % name)
         splits.to_netcdf(splits_path)
