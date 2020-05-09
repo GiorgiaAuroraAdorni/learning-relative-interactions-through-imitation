@@ -112,26 +112,27 @@ def plot_position_over_time(runs_dir, img_dir, title, filename):
     position_by_step = dataset_states.position.groupby('step').quantile([0.25, 0.75, 0.10, 0.90, 0.5])
 
     # Plot the evolution of the position over time
-    fig, ax = plt.subplots(figsize=(7.8, 4.8))
+    plt.figure(figsize=(7.8, 4.8))
 
-    ax.set_xlabel('timestep', fontsize=11)
-    ax.set_ylabel('position', fontsize=11)
-    ax.set_yticks([x_goal_position, y_goal_position])
-    ax.grid()
+    plt.xlabel('timestep', fontsize=11)
+    plt.ylabel('position', fontsize=11)
+    plt.yticks([x_goal_position, y_goal_position])
+    plt.grid()
 
     for quantiles in unpack(position_by_step, "axis"):
         axis = quantiles.axis.values
         q1, q2, q3, q4, median = unpack(quantiles, "quantile")
 
-        ln, = ax.plot(time_steps, median, label='median (%s axis)' % axis)
-        ax.fill_between(time_steps, q1, q2, alpha=0.2, label='interquartile range (%s axis)' % axis, color=ln.get_color())
-        ax.fill_between(time_steps, q3, q4, alpha=0.1, label='interdecile range (%s axis)' % axis, color=ln.get_color())
+        ln, = plt.plot(time_steps, median, label='median (%s axis)' % axis)
+        plt.fill_between(time_steps, q1, q2, alpha=0.2, label='interquartile range (%s axis)' % axis,
+                       color=ln.get_color())
+        plt.fill_between(time_steps, q3, q4, alpha=0.1, label='interdecile range (%s axis)' % axis,
+                         color=ln.get_color())
 
-    ax.legend()
-    fig.suptitle(title, fontsize=14, weight='bold')
+    plt.legend()
+    plt.title(title, fontsize=14, weight='bold')
 
-    fig.tight_layout()
-    fig.subplots_adjust(hspace=0.4)
+    plt.tight_layout()
 
     save_visualisation(filename, img_dir)
 
@@ -152,19 +153,16 @@ def plot_goal_reached_distribution(runs_dir, img_dir, title, filename):
     last_steps = states_subset.groupby("run").map(lambda x: x.isel(sample=-1))
     [false_label, false_samples], [true_label, true_samples] = last_steps.groupby('goal_reached')
 
-    fig, ax = plt.subplots(figsize=(7.8, 4.8))
+    plt.figure(figsize=(7.8, 4.8))
     plt.hist([true_samples.step, false_samples.step], bins=time_steps, label=[true_label, false_label], stacked=True,
              alpha=0.9)
     plt.ylim(0, 35)
     plt.legend()
 
-    ax.set_xlim(0, dataset_states.step.max() + 1)
-    ax.set_xlabel('timestep', fontsize=11)
-    ax.set_ylabel('samples', fontsize=11)
-    fig.suptitle(title, fontsize=14, weight='bold')
-
-    fig.tight_layout()
-    fig.subplots_adjust(hspace=0.4)
+    plt.xlim(0, dataset_states.step.max() + 1)
+    plt.xlabel('timestep', fontsize=11)
+    plt.ylabel('samples', fontsize=11)
+    plt.title(title, fontsize=14, weight='bold')
 
     save_visualisation(filename, img_dir)
 
@@ -246,10 +244,9 @@ def plot_trajectory(runs_dir, img_dir, title, filename):
     ax.set_aspect('equal')
 
     plt.legend()
-    fig.suptitle(title, fontsize=14, weight='bold')
+    plt.title(title, fontsize=14, weight='bold')
 
-    fig.tight_layout()
-    fig.subplots_adjust(hspace=0.4)
+    plt.tight_layout()
 
     save_visualisation(filename, img_dir)
 
@@ -281,21 +278,60 @@ def plot_sensors(runs_dir, video_dir, title, filename):
 
 
 def plot_initial_positions(runs_dir, img_dir, title, filename):
+    """
+
+    :param runs_dir:
+    :param img_dir:
+    :param title:
+    :param filename:
+    :return:
+    """
     dataset_states = load_dataset(runs_dir)
     step_states = dataset_states.where(dataset_states.step == 0, drop=True)
     x, y = unpack(step_states.initial_position, 'axis')
 
-    fig, ax = plt.subplots(figsize=(7.8, 4.8))
+    plt.figure(figsize=(7.8, 4.8))
 
-    ax.scatter(x, y, alpha=0.2)
-    ax.axis('equal')
+    plt.scatter(x, y, alpha=0.2)
+    plt.axis('equal')
 
-    ax.set_xlabel('x axis', fontsize=11)
-    ax.set_ylabel('y axis', fontsize=11)
+    plt.xlabel('x axis', fontsize=11)
+    plt.ylabel('y axis', fontsize=11)
 
-    fig.suptitle(title, fontsize=14, weight='bold')
-
-    fig.tight_layout()
-    fig.subplots_adjust(hspace=0.4)
+    plt.title(title, fontsize=14, weight='bold')
+    plt.tight_layout()
 
     save_visualisation(filename, img_dir)
+
+
+def plot_losses(train_loss, valid_loss, img_dir, title, filename, scale=None):
+    """
+
+    :param train_loss: the training losses
+    :param valid_loss: the testing losses
+    :param img_dir: directory for the output image
+    :param title:
+    :param filename:
+    :param scale:
+    """
+    x = np.arange(0, len(train_loss), dtype=int)
+    x_ticks = np.arange(0, len(train_loss) + 1, 10, dtype=int)
+
+    plt.figure()
+    plt.xlabel('epoch', fontsize=11)
+    plt.ylabel('loss', fontsize=11)
+
+    plt.xticks(x_ticks)
+
+    plt.plot(x, train_loss, label='train')
+    plt.plot(x, valid_loss, label='validation')
+    if scale is not None:
+        plt.ylim(0, scale)
+
+    plt.yscale('log')
+
+    plt.legend()
+    plt.title(title, weight='bold', fontsize=12)
+
+    save_visualisation(filename, img_dir)
+

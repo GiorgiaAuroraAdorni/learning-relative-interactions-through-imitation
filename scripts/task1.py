@@ -117,3 +117,10 @@ if __name__ == '__main__':
             dataset, splits = load_dataset(runs_dir_omniscient, load_splits=True)
 
             train_net(dataset, splits, model_dir, args.model, file_metrics)
+
+        if args.evaluate_net:
+            from network_evaluation import evaluate_net
+
+            dataset, splits = load_dataset(runs_dir_omniscient, load_splits=True)
+            evaluate_net(dataset, splits, model_dir, args.model, img_dir_model, file_metrics)
+
