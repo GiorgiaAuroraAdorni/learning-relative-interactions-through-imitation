@@ -48,7 +48,7 @@ class OmniscientController(Controller):
         return r, theta, delta
 
     @staticmethod
-    def virtual_controller(theta, k1=1):
+    def reference_heading(theta, k1=1):
         """
 
         :param theta:
@@ -77,7 +77,7 @@ class OmniscientController(Controller):
         return k
 
     @staticmethod
-    def linear_velocity(max_vel, k, beta=1, lambd=1):
+    def linear_velocity(max_vel, k, beta=0.4, lambd=2):
         """
 
         :param max_vel:
@@ -115,7 +115,7 @@ class OmniscientController(Controller):
         """
 
         r, theta, delta = self.current_state(state)
-        delta_hat = self.virtual_controller(theta)
+        delta_hat = self.reference_heading(theta)
         k = self.curvature(r, theta, delta, delta_hat)
 
         lin_vel = self.linear_velocity(min(self.max_vel, 2 * r), k)
