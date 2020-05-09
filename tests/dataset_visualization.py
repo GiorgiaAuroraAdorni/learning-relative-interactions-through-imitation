@@ -1,4 +1,5 @@
 import os
+
 import numpy as np
 
 import viz
@@ -9,9 +10,12 @@ controller = "omniscient-controller"
 datasets_dir = "datasets/"
 runs_dir = os.path.join(datasets_dir, controller)
 dataset = load_dataset(runs_dir)
+dataset.load()
 
-sample_id = np.random.choice(dataset.sizes['sample'])
-run_id = dataset.run[sample_id]
+last_steps = dataset.groupby("run").map(lambda x: x.isel(sample=-1))
+runs = last_steps.run.where(last_steps.goal_reached == False)
+
+run_id = np.random.choice(runs)
 run = dataset.where(dataset.run == run_id, drop=True)
 
 print("Generating video for run %d…" % run_id)
