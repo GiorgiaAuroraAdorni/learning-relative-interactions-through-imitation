@@ -27,10 +27,10 @@ class ControlSignalsViz(Viz):
         self.time = np.linspace(-self.time_window, 0, self.n_samples)
         self.readings = np.full((self.n_dims, self.n_samples), np.nan)
 
-        labels = ["linear velocity", "angular velocity"]
+        labels = ["linear velocity [cm/s]", "angular velocity [rad/s]"]
         colors = ["tab:blue", "tab:orange"]
-        mins = [-self.marxbot_max_vel, -np.pi / 4 * self.marxbot_max_vel]
-        maxs = [+self.marxbot_max_vel, +np.pi / 4 * self.marxbot_max_vel]
+        mins = [-self.marxbot_max_vel, -10]
+        maxs = [+self.marxbot_max_vel, +10]
 
         self.plots = []
 

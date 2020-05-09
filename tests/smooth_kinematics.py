@@ -53,7 +53,7 @@ env = viz.FuncAnimationEnv([
         viz.LaserScannerViz(marxbot),
         viz.ControlSignalsViz(marxbot)
     ], suptitle='Smooth Kinematics Demo')
-])
+], refresh_interval=0.1)
 env.show(figsize=(9, 4))
 
 # Start the event loop
