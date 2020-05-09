@@ -1,11 +1,13 @@
+import os
+
+import numpy as np
+import pandas as pd
 import torch
-import torch.utils.data as data
 import torch.nn as nn
 import torch.nn.functional as F
-
-import xarray as xr
+import torch.utils.data as data
 import tqdm
-import math
+import xarray as xr
 
 
 class ConvNet(nn.Module):
@@ -40,6 +42,30 @@ class ConvNet(nn.Module):
         output = self.fc2(net)
 
         return output
+
+
+class NetMetrics:
+    """This class is supposed to create a dataframe that collects, updates and saves to file the metrics of a model."""
+    def __init__(self):
+        """
+        """
+        self.metrics = ['t. loss', 'v. loss']
+        self.df = pd.DataFrame(columns=self.metrics)
+
+    def update_metrics(self, train_metric, valid_metric):
+        """
+
+        :param train_metric
+        :param valid_metric
+        """
+        self.df = self.df.append({'t. loss': train_metric, 'v. loss': valid_metric}, ignore_index=True)
+
+    def save_metrics(self, out_file):
+        """
+
+        :param out_file
+        """
+        self.df.to_pickle(out_file)
 
 
 def split_datasets(dataset, splits):
@@ -78,7 +104,18 @@ def to_torch_loader(dataset, **kwargs):
     return loader
 
 
-def train_net(dataset, splits, n_epochs=100, lr=0.01, batch_size=1024):
+def train_net(dataset, splits, model_dir, model, file_metrics, n_epochs=100, lr=0.01, batch_size=1024):
+    """
+
+    :param dataset:
+    :param splits:
+    :param model_dir:
+    :param model:
+    :param n_epochs:
+    :param lr:
+    :param batch_size:
+    :return:
+    """
     train, validation, _ = split_datasets(dataset, splits)
 
     train_loader = to_torch_loader(train, batch_size=batch_size, shuffle=True, pin_memory=True)
@@ -92,13 +129,15 @@ def train_net(dataset, splits, n_epochs=100, lr=0.01, batch_size=1024):
     print("Device:", device)
     print("Model:", net)
 
-    n_params = list(math.prod(param.size()) for param in net.parameters())
+    n_params = list(np.prod(param.size()) for param in net.parameters())
     print("Parameters:", n_params)
 
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=lr)
 
     t = tqdm.trange(n_epochs, unit='epoch')
+
+    df_metrics = NetMetrics()
 
     for epoch in t:
         l = 0
@@ -126,13 +165,24 @@ def train_net(dataset, splits, n_epochs=100, lr=0.01, batch_size=1024):
         }
         metrics.update(vmetrics)
 
+        df_metrics.update_metrics(metrics['t. loss'], metrics['v. loss'])
+
         t.set_postfix(metrics)
 
-    model_path = 'datasets/prova.pth'
-    torch.save(net.state_dict(), model_path)
+    torch.save(net, '%s%s' % (model_dir, model))
+
+    df_metrics.save_metrics(file_metrics)
 
 
 def validate_net(net, criterion, valid_loader, device):
+    """
+
+    :param net:
+    :param criterion:
+    :param valid_loader:
+    :param device:
+    :return:
+    """
     with torch.no_grad():
         l = 0
 

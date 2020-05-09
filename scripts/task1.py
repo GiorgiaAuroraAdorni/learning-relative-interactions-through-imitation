@@ -21,13 +21,18 @@ def parse_args():
     parser.add_argument('--controller', default='all', choices=['all', 'learned', 'omniscient'],
                         help='choose the controller for the current execution between all, learned, manual and '
                              'omniscient (default: all)')
+
     parser.add_argument('--dataset-folder', default='datasets/', type=str,
                         help='name of the directory containing the datasets (default: datasets/)')
+    parser.add_argument('--model-folder', default='models/', type=str,
+                        help='name of the directory containing the models (default: models/)')
 
-    parser.add_argument('--train-net', action="store_true",
-                        help='train the model  (default: False)')
     parser.add_argument('--model', default='net1', type=str,
                         help='name of the model (default: net1)')
+    parser.add_argument('--train-net', action="store_true",
+                        help='train the model  (default: False)')
+    parser.add_argument('--evaluate-net', action="store_true",
+                        help='evaluate the model  (default: False)')
     parser.add_argument('--plots-net', action="store_true",
                         help='generate the plots of regarding the model (default: False)')
 
@@ -52,6 +57,14 @@ if __name__ == '__main__':
 
     video_dir_omniscient = os.path.join(runs_dir_omniscient, 'videos')
     check_dir(video_dir_omniscient)
+
+    model_dir = os.path.join(args.model_folder)
+    check_dir(model_dir)
+
+    img_dir_model = os.path.join(model_dir, 'images')
+    check_dir(img_dir_model)
+
+    file_metrics = os.path.join(model_dir, 'losses.pkl')
 
     if args.controller == 'all' or args.controller == 'omniscient':
         if args.generate_dataset:
@@ -93,8 +106,6 @@ if __name__ == '__main__':
             plot_initial_positions(runs_dir_omniscient, img_dir_omniscient, 'Initial positions',
                                    'initial-positions')
 
-            print()
-
         if args.generate_splits:
             dataset = load_dataset(runs_dir_omniscient)
             splits = generate_splits(dataset)
@@ -104,4 +115,5 @@ if __name__ == '__main__':
             from neural_networks import train_net
 
             dataset, splits = load_dataset(runs_dir_omniscient, load_splits=True)
-            train_net(dataset, splits)
+
+            train_net(dataset, splits, model_dir, args.model, file_metrics)
