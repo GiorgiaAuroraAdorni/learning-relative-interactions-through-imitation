@@ -17,9 +17,9 @@ class ControlSignalsViz(Viz):
         self.ax = env.get_axes()
         self.ax.set_title('Control signals over time')
 
-        self.ax.set_xlabel("time (s)")
+        self.ax.set_xlabel("time [s]")
         self.ax.set_xlim(-self.time_window, 0)
-        self.ax.grid('both')
+        self.ax.grid(True)
 
         self.n_dims = 2
         self.n_samples = round(self.time_window / env.refresh_interval)
