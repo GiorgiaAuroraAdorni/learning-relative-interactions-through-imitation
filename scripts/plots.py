@@ -133,7 +133,7 @@ def plot_position_over_time(runs_dir, img_dir, title, filename):
     fig.tight_layout()
     fig.subplots_adjust(hspace=0.4)
 
-    save_visualisation(filename, img_dir, make_space=True, axes=ax)
+    save_visualisation(filename, img_dir)
 
 
 def plot_goal_reached_distribution(runs_dir, img_dir, title, filename):
@@ -166,7 +166,7 @@ def plot_goal_reached_distribution(runs_dir, img_dir, title, filename):
     fig.tight_layout()
     fig.subplots_adjust(hspace=0.4)
 
-    save_visualisation(filename, img_dir, make_space=True, axes=ax)
+    save_visualisation(filename, img_dir)
 
 
 def plot_trajectory(runs_dir, img_dir, title, filename):
@@ -251,7 +251,7 @@ def plot_trajectory(runs_dir, img_dir, title, filename):
     fig.tight_layout()
     fig.subplots_adjust(hspace=0.4)
 
-    save_visualisation(filename, img_dir, make_space=True, axes=ax)
+    save_visualisation(filename, img_dir)
 
 
 def plot_sensors(runs_dir, video_dir, title, filename):
@@ -290,10 +290,12 @@ def plot_initial_positions(runs_dir, img_dir, title, filename):
     ax.scatter(x, y, alpha=0.2)
     ax.axis('equal')
 
-    # FIXME add labels
+    ax.set_xlabel('x axis', fontsize=11)
+    ax.set_ylabel('y axis', fontsize=11)
+
     fig.suptitle(title, fontsize=14, weight='bold')
 
     fig.tight_layout()
     fig.subplots_adjust(hspace=0.4)
 
-    save_visualisation(filename, img_dir, make_space=True, axes=ax)
+    save_visualisation(filename, img_dir)
