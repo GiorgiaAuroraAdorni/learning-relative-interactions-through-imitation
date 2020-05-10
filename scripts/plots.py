@@ -153,7 +153,9 @@ def plot_goal_reached_distribution(runs_dir, img_dir, filename):
 
     states_subset = dataset_states[["step", "goal_reached"]]
     last_steps = states_subset.groupby("run").map(lambda x: x.isel(sample=-1))
-    [false_label, false_samples], [true_label, true_samples] = last_steps.groupby('goal_reached')
+
+    false_label, false_samples = False, last_steps.where(last_steps.goal_reached == False, drop=True)
+    true_label, true_samples = True, last_steps.where(last_steps.goal_reached == True, drop=True)
 
     plt.figure(figsize=(7.8, 4.8), constrained_layout=True)
     plt.hist([true_samples.step, false_samples.step], bins=time_steps, label=[true_label, false_label], stacked=True,

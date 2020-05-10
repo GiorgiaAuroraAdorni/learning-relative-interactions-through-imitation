@@ -206,7 +206,7 @@ class GenerateSimulationData:
         )
 
     @classmethod
-    def run(cls, marxbot, world, builder, template, gui=False, T=15, dt=0.1):
+    def run(cls, marxbot, world, builder, template, gui=False, T=20, dt=0.1):
         """
         Run the simulation as fast as possible or using the real time GUI.
         :param marxbot: MyMarxbot
