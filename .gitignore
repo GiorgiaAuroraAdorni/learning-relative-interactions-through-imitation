@@ -294,3 +294,9 @@ dmypy.json
 .pyre/
 
 # End of https://www.gitignore.io/api/macos,python,pycharm,jetbrains,jupyternotebooks
+
+# Derived plots and videos
+datasets/*/images
+datasets/*/videos
+models/*/images
+models/*/videos
