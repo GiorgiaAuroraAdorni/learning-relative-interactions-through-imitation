@@ -228,3 +228,11 @@ def generate_splits(dataset, coord='run', splits=None):
     splits = xr.DataArray(assigns, coords=dataset[coord].coords, attrs={"split_names": names})
 
     return splits
+
+
+def split_datasets(dataset, splits):
+    # Force-load the datasets from disk before splitting them, since it's _very_
+    # much faster than reading them in random order once they've been split.
+    dataset.load()
+
+    return (split for _, split in dataset.groupby(splits))

@@ -22,10 +22,10 @@ def parse_args():
                         help='choose the controller for the current execution between all, learned, manual and '
                              'omniscient (default: all)')
 
-    parser.add_argument('--dataset-folder', default='datasets/', type=str,
-                        help='name of the directory containing the datasets (default: datasets/)')
-    parser.add_argument('--model-folder', default='models/', type=str,
-                        help='name of the directory containing the models (default: models/)')
+    parser.add_argument('--dataset-folder', default='datasets', type=str,
+                        help='name of the directory containing the datasets (default: datasets)')
+    parser.add_argument('--model-folder', default='models', type=str,
+                        help='name of the directory containing the models (default: models)')
 
     parser.add_argument('--model', default='net1', type=str,
                         help='name of the model (default: net1)')
@@ -58,13 +58,13 @@ if __name__ == '__main__':
     video_dir_omniscient = os.path.join(runs_dir_omniscient, 'videos')
     check_dir(video_dir_omniscient)
 
-    model_dir = os.path.join(args.model_folder)
+    model_dir = os.path.join(args.models_folder, args.model)
     check_dir(model_dir)
 
     img_dir_model = os.path.join(model_dir, 'images')
     check_dir(img_dir_model)
 
-    file_metrics = os.path.join(model_dir, 'losses.pkl')
+    metrics_path = os.path.join(model_dir, 'metrics.pkl')
 
     if args.controller == 'all' or args.controller == 'omniscient':
         if args.generate_dataset:
@@ -115,12 +115,12 @@ if __name__ == '__main__':
 
             dataset, splits = load_dataset(runs_dir_omniscient, load_splits=True)
 
-            train_net(dataset, splits, model_dir, args.model, file_metrics)
+            train_net(dataset, splits, model_dir, metrics_path)
 
         if args.evaluate_net:
             print('Generating plots for model %s…' % args.model)
             from network_evaluation import evaluate_net
 
             dataset, splits = load_dataset(runs_dir_omniscient, load_splits=True)
-            evaluate_net(dataset, splits, model_dir, args.model, img_dir_model, file_metrics)
+            evaluate_net(dataset, splits, model_dir, img_dir_model, metrics_path)
 

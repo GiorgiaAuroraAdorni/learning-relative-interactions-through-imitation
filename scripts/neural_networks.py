@@ -9,6 +9,8 @@ import torch.utils.data as data
 import tqdm
 import xarray as xr
 
+from dataset import split_datasets
+
 
 class ConvNet(nn.Module):
     def __init__(self):
@@ -46,38 +48,31 @@ class ConvNet(nn.Module):
 
 class NetMetrics:
     """This class is supposed to create a dataframe that collects, updates and saves to file the metrics of a model."""
-    def __init__(self):
+    def __init__(self, t: tqdm.tqdm):
         """
         """
         self.metrics = ['t. loss', 'v. loss']
         self.df = pd.DataFrame(columns=self.metrics)
 
-    def update_metrics(self, train_metric, valid_metric):
+        self.t = t
+
+    def update(self, epoch, train_loss, valid_loss):
         """
 
-        :param train_metric
-        :param valid_metric
+        :param train_loss
+        :param valid_loss
         """
-        self.df = self.df.append({'t. loss': train_metric, 'v. loss': valid_metric}, ignore_index=True)
+        metrics = {'t. loss': train_loss, 'v. loss': valid_loss}
+        self.df = self.df.append(metrics, ignore_index=True)
 
-    def save_metrics(self, out_file):
+        self.t.set_postfix(metrics)
+
+    def save(self, out_file):
         """
 
         :param out_file
         """
         self.df.to_pickle(out_file)
-
-
-def split_datasets(dataset, splits):
-    # Force-load the datasets from disk before splitting them, since it's _very_
-    # much faster than reading them in random order once they've been split.
-    dataset.load()
-
-    # Attach the split column to the dataset, containing the id of the split
-    # each sample belongs to
-    dataset['split'] = splits
-
-    return (split for _, split in dataset.groupby('split'))
 
 
 def to_torch_loader(dataset, **kwargs):
@@ -104,13 +99,25 @@ def to_torch_loader(dataset, **kwargs):
     return loader
 
 
-def train_net(dataset, splits, model_dir, model, file_metrics, n_epochs=100, lr=0.01, batch_size=1024):
+def save_network(model_dir, net):
+    model_path = os.path.join(model_dir, 'model.pt')
+    torch.save(net, model_path)
+
+
+def load_network(model_dir, device='cpu'):
+    model_path = os.path.join(model_dir, 'model.pt')
+    net = torch.load(model_path, map_location=device)
+
+    return net
+
+
+def train_net(dataset, splits, model_dir, metrics_path, n_epochs=100, lr=0.01, batch_size=1024):
     """
 
     :param dataset:
     :param splits:
     :param model_dir:
-    :param model:
+    :param metrics_path:
     :param n_epochs:
     :param lr:
     :param batch_size:
@@ -137,10 +144,10 @@ def train_net(dataset, splits, model_dir, model, file_metrics, n_epochs=100, lr=
 
     t = tqdm.trange(n_epochs, unit='epoch')
 
-    df_metrics = NetMetrics()
+    metrics = NetMetrics(t)
 
     for epoch in t:
-        l = 0
+        train_loss = 0
 
         for batch in train_loader:
             inputs, targets = (tensor.to(device) for tensor in batch)
@@ -154,24 +161,15 @@ def train_net(dataset, splits, model_dir, model, file_metrics, n_epochs=100, lr=
             loss.backward()
             optimizer.step()
 
-            l += loss
+            train_loss += loss
 
-        l /= len(train_loader)
+        train_loss /= len(train_loader)
+        valid_loss = validate_net(net, criterion, valid_loader, device)
 
-        vmetrics = validate_net(net, criterion, valid_loader, device)
+        metrics.update(epoch, train_loss, valid_loss)
 
-        metrics = {
-            "t. loss": float(l)
-        }
-        metrics.update(vmetrics)
-
-        df_metrics.update_metrics(metrics['t. loss'], metrics['v. loss'])
-
-        t.set_postfix(metrics)
-
-    torch.save(net, '%s%s' % (model_dir, model))
-
-    df_metrics.save_metrics(file_metrics)
+    save_network(model_dir, net)
+    metrics.save(metrics_path)
 
 
 def validate_net(net, criterion, valid_loader, device):
@@ -184,7 +182,7 @@ def validate_net(net, criterion, valid_loader, device):
     :return:
     """
     with torch.no_grad():
-        l = 0
+        valid_loss = 0
 
         for batch in valid_loader:
             inputs, targets = (tensor.to(device) for tensor in batch)
@@ -192,13 +190,9 @@ def validate_net(net, criterion, valid_loader, device):
             outputs = net(inputs)
             loss = criterion(outputs, targets)
 
-            l += loss
+            valid_loss += loss
 
         # FIXME
-        l /= len(valid_loader) * 1024
+        valid_loss /= len(valid_loader) * 1024
 
-    metrics = {
-        "v. loss": float(l)
-    }
-
-    return metrics
+    return valid_loss

@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import pandas as pd
 
-from neural_networks import split_datasets, to_torch_loader
+from neural_networks import split_datasets, to_torch_loader, load_network
 from plots import plot_losses, plot_target_distribution, plot_regressor
 
 
@@ -25,7 +25,7 @@ def get_predictions(net, valid_loader, device):
     return prediction, groundtruth
 
 
-def evaluate_net(dataset, splits, model_dir, model, img_dir_model, file_metrics):
+def evaluate_net(dataset, splits, model_dir, img_dir_model, file_metrics):
     """
 
     :param dataset:
@@ -36,7 +36,7 @@ def evaluate_net(dataset, splits, model_dir, model, img_dir_model, file_metrics)
     :param file_metrics:
     :return:
     """
-    net = torch.load('%s%s' % (model_dir, model), map_location=torch.device('cpu'))
+    net = load_network(model_dir)
 
     losses = pd.read_pickle(file_metrics)
     training_loss = losses.loc[:, 't. loss']
@@ -48,7 +48,7 @@ def evaluate_net(dataset, splits, model_dir, model, img_dir_model, file_metrics)
 
     prediction, groundtruth = get_predictions(net, valid_loader, device)
 
-    network_plots(img_dir_model, model, training_loss, validation_loss, groundtruth, prediction)
+    network_plots(img_dir_model, training_loss, validation_loss, groundtruth, prediction)
 
     # distances = np.random.uniform(0, 150, [1, 1, 180])
     # colours = np.random.uniform(0, 1, [1, 3, 180])
@@ -57,7 +57,7 @@ def evaluate_net(dataset, splits, model_dir, model, img_dir_model, file_metrics)
     # prediction = net(torch.FloatTensor(inputs))
 
 
-def network_plots(model_img, model, training_loss, validation_loss, groundtruth, prediction):
+def network_plots(model_img, training_loss, validation_loss, groundtruth, prediction):
     """
     :param model_img
     :param model
@@ -71,17 +71,14 @@ def network_plots(model_img, model, training_loss, validation_loss, groundtruth,
     """
 
     # Plot train and validation losses
-    file_name = 'loss-%s' % model
-    plot_losses(training_loss, validation_loss, model_img, file_name)
+    plot_losses(training_loss, validation_loss, model_img, 'loss')
 
     # Plot histogram wheel target speeds
     y_g = np.concatenate([gt.numpy() for gt in groundtruth])
     y_p = np.concatenate([p.detach().numpy() for p in prediction])  # FIXME p.detach()
-    file_name = 'distribution-target-%s' % model
 
-    plot_target_distribution(y_g, y_p, model_img, file_name)
+    plot_target_distribution(y_g, y_p, model_img, 'distribution-target')
 
     # Evaluate prediction of the learned controller to the omniscient groundtruth
     # Plot R^2 of the regressor between prediction and ground truth on the validation set
-    file_name = 'regression-%ss' % model
-    plot_regressor(y_g, y_p, model_img, file_name)
+    plot_regressor(y_g, y_p, model_img, 'regression')
