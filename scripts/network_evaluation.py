@@ -50,12 +50,6 @@ def evaluate_net(dataset, splits, model_dir, img_dir_model, file_metrics):
 
     network_plots(img_dir_model, training_loss, validation_loss, groundtruth, prediction)
 
-    # distances = np.random.uniform(0, 150, [1, 1, 180])
-    # colours = np.random.uniform(0, 1, [1, 3, 180])
-    # inputs = np.concatenate([colours, distances], axis=1)
-    #
-    # prediction = net(torch.FloatTensor(inputs))
-
 
 def network_plots(model_img, training_loss, validation_loss, groundtruth, prediction):
     """

@@ -32,7 +32,7 @@ class GenerateSimulationData:
             net = torch.load('%s/%s' % (model_dir, model))
 
             def controller_factory():
-                return controllers_task1.LearnedController(net=net, net_input=args.net_input)
+                return controllers_task1.LearnedController(net=net)
         else:
             raise ValueError("Invalid value for controller")
 

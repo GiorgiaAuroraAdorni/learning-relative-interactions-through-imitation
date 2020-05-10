@@ -1,8 +1,18 @@
 import numpy as np
+from abc import ABC, abstractmethod
+
+import torch
 
 from kinematics import to_wheels_velocities, euclidean_distance, angle_difference, steering_angle
 
-class Controller:
+
+class Controller(ABC):
+
+    def __init__(self):
+        self.max_vel = 30
+
+        self.distance_tol = 0.1
+        self.angle_tolerance = 0.005
 
     def perform_control(self, state, dt):
         """
@@ -15,7 +25,19 @@ class Controller:
         :param state
         :param dt
         """
-        raise NotImplementedError("The subclass should implement this method")
+        velocities = self._perform_control(state, dt)
+
+        # Detect when the robot reaches the goal
+        distance_error = euclidean_distance(state.goal_position, state.position)
+        angle_error = angle_difference(state.goal_angle, state.angle)
+
+        goal_reached = (distance_error < self.distance_tol and angle_error < self.angle_tolerance)
+
+        return velocities, goal_reached
+
+    @abstractmethod
+    def _perform_control(self, state, dt):
+        pass
 
 
 class OmniscientController(Controller):
@@ -26,11 +48,6 @@ class OmniscientController(Controller):
     """
     def __init__(self):
         super().__init__()
-
-        self.max_vel = 30
-
-        self.distance_tol = 0.1
-        self.angle_tolerance = 0.005
 
     @staticmethod
     def current_state(state):
@@ -102,7 +119,7 @@ class OmniscientController(Controller):
 
         return ang_vel
 
-    def perform_control(self, state, dt):
+    def _perform_control(self, state, dt):
         """
         Move the robots using the omniscient controller by setting the target {left,right} wheel speed
         each at the same value in order to moves the robot straight ahead.
@@ -113,7 +130,6 @@ class OmniscientController(Controller):
         :param state
         :param dt
         """
-
         r, theta, delta = self.current_state(state)
         delta_hat = self.reference_heading(theta)
         k = self.curvature(r, theta, delta, delta_hat)
@@ -121,14 +137,6 @@ class OmniscientController(Controller):
         lin_vel = self.linear_velocity(min(self.max_vel, 2 * r), k)
         ang_vel = self.angular_velocity(k, lin_vel)
         left_vel, right_vel = to_wheels_velocities(lin_vel, ang_vel)
-
-        # Detect when the robot reaches the goal
-        distance_error = r
-        # Equivalent to state.goal_angle - state.angle
-        angle_error = abs(delta - theta)
-
-        if distance_error < self.distance_tol and angle_error < self.angle_tolerance:
-            state.goal_reached = True
 
         return left_vel, right_vel
 
@@ -138,7 +146,7 @@ class LearnedController(Controller):
     The robots can be moved following a controller learned by a neural network.
     """
 
-    def __init__(self, net, net_input):
+    def __init__(self, net):
         super().__init__()
 
         self.net = net
@@ -146,27 +154,40 @@ class LearnedController(Controller):
             raise ValueError("Value for net not provided")
 
         self.net_controller = net.controller()
-        self.net_input = net_input
 
-    def perform_control(self, state, dt):
+    def input_to_tensor(self, state):
         """
-        Extract the input sensing from the list of (7) proximity sensor readings, one for each sensors.
-        The first 5 entries are from frontal sensors ordered from left to right.
-        The last two entries are from rear sensors ordered from left to right.
-        Then normalise each value of the list, by dividing it by 1000.
+        :param state
+        :return input:
+        """
+        scanner_image = state.scanner_image
+        scanner_distances = state.scanner_distances
 
+        # Add a new 'channels' dimension to scanner_distances so it can be
+        # concatenated with scanner_image
+        scanner_distances = np.expand_dims(scanner_distances, axis=-1)
+
+        # Concatenate the two variables to a single array and transpose the dimensions
+        # to match the PyTorch convention of samples ⨉ channels ⨉ angles
+        scanner_data = np.concatenate([scanner_image, scanner_distances], axis=-1)
+        scanner_data = np.transpose(scanner_data)
+
+        # FIXME: maybe save directly as float32?
+        input = torch.as_tensor(scanner_data.data, dtype=torch.float)
+
+        return input
+
+    def _perform_control(self, state, dt):
+        """
+        Extract the input sensing from the scanner_image and scanner_distances
+        readings.
         Generate the output speed using the learned controller.
 
-        Move the robots not to the end of the line using the controller, setting the target {left,right} wheel speed
-        each at the same value in order to moves the robot straight ahead.
         :param state
         :param dt
         """
-        sensing = get_input_sensing(self.net_input, state)
+        input = self.input_to_tensor(state)
 
-        speed = float(self.net_controller(sensing)[0])
+        left_vel, right_vel = self.net(input)
 
-        if state.initial_position[0] != state.goal_position[0]:
-            return speed
-        else:
-            return 0
+        return left_vel, right_vel
