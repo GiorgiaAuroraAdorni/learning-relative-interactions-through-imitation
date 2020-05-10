@@ -65,10 +65,13 @@ class NetMetrics:
 
         self.t = t
 
-    def add_graph(self, model, train_loader):
+    def add_graph(self, model, model_device, train_loader):
         # Extract the inputs of the first batch from the DataLoader, since PyTorch
         # needs an input tensor to correctly trace the model.
         inputs, _ = next(iter(train_loader))
+
+        # Ensure that the inputs reside on the same device as the model
+        inputs = inputs.to(model_device)
 
         self.writer.add_graph(model, inputs)
 
@@ -168,7 +171,7 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=100
     t = tqdm.trange(n_epochs, unit='epoch')
 
     metrics = NetMetrics(t, metrics_path, tboard_dir)
-    metrics.add_graph(net, train_loader)
+    metrics.add_graph(net, device, train_loader)
 
     for epoch in t:
         train_loss = 0
