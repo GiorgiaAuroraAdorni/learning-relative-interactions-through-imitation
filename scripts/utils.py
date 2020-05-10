@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 
 def check_dir(directory):
@@ -33,7 +34,7 @@ def directory_for_model(args):
     :param args:
     :return:
     """
-    model_dir = os.path.join(args.model_folder, args.model)
+    model_dir = os.path.join(args.models_folder, args.model)
 
     model_img_dir = os.path.join(model_dir, 'images')
     check_dir(model_img_dir)
@@ -43,7 +44,11 @@ def directory_for_model(args):
 
     metrics_path = os.path.join(model_dir, 'metrics.pkl')
 
-    return model_dir, model_img_dir, model_video_dir, metrics_path
+    run_name = datetime.now().strftime("%Y%m%d-%H%M%S")
+    tboard_dir = os.path.join(args.tensorboard_folder, args.model, run_name)
+    check_dir(tboard_dir)
+
+    return model_dir, model_img_dir, model_video_dir, metrics_path, tboard_dir
 
 
 def unpack(dataset, dim):

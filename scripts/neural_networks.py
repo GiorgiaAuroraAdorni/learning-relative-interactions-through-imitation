@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.data as data
+import torch.utils.tensorboard as tensorboard
 import tqdm
 import xarray as xr
 
@@ -48,13 +49,28 @@ class ConvNet(nn.Module):
 
 class NetMetrics:
     """This class is supposed to create a dataframe that collects, updates and saves to file the metrics of a model."""
-    def __init__(self, t: tqdm.tqdm):
+
+    TRAIN_LOSS = 't. loss'
+    VALIDATION_LOSS = 'v. loss'
+
+    def __init__(self, t: tqdm.tqdm, metrics_path, tboard_dir):
         """
         """
-        self.metrics = ['t. loss', 'v. loss']
-        self.df = pd.DataFrame(columns=self.metrics)
+        self.metrics_path = metrics_path
+        self.df = pd.DataFrame(columns=[
+            self.TRAIN_LOSS, self.VALIDATION_LOSS
+        ])
+
+        self.writer = tensorboard.SummaryWriter(tboard_dir)
 
         self.t = t
+
+    def add_graph(self, model, train_loader):
+        # Extract the inputs of the first batch from the DataLoader, since PyTorch
+        # needs an input tensor to correctly trace the model.
+        inputs, _ = next(iter(train_loader))
+
+        self.writer.add_graph(model, inputs)
 
     def update(self, epoch, train_loss, valid_loss):
         """
@@ -62,17 +78,21 @@ class NetMetrics:
         :param train_loss
         :param valid_loss
         """
-        metrics = {'t. loss': train_loss, 'v. loss': valid_loss}
+        metrics = {self.TRAIN_LOSS: train_loss, self.VALIDATION_LOSS: valid_loss}
         self.df = self.df.append(metrics, ignore_index=True)
+
+        self.writer.add_scalar('loss/train', train_loss, epoch)
+        self.writer.add_scalar('loss/validation', valid_loss, epoch)
 
         self.t.set_postfix(metrics)
 
-    def save(self, out_file):
+    def finalize(self):
         """
 
         :param out_file
         """
-        self.df.to_pickle(out_file)
+        self.df.to_pickle(self.metrics_path)
+        self.writer.close()
 
 
 def to_torch_loader(dataset, **kwargs):
@@ -111,13 +131,14 @@ def load_network(model_dir, device='cpu'):
     return net
 
 
-def train_net(dataset, splits, model_dir, metrics_path, n_epochs=100, lr=0.01, batch_size=1024):
+def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=100, lr=0.01, batch_size=1024):
     """
 
     :param dataset:
     :param splits:
     :param model_dir:
     :param metrics_path:
+    :param tboard_dir:
     :param n_epochs:
     :param lr:
     :param batch_size:
@@ -139,13 +160,15 @@ def train_net(dataset, splits, model_dir, metrics_path, n_epochs=100, lr=0.01, b
     params = {key: [np.product(param.size()) for param in child.parameters()] for key, child in net.named_children()}
     n_params = sum(sum(p) for p in params.values())
     print("Parameters:", n_params, params)
+    print()
 
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=lr)
 
     t = tqdm.trange(n_epochs, unit='epoch')
 
-    metrics = NetMetrics(t)
+    metrics = NetMetrics(t, metrics_path, tboard_dir)
+    metrics.add_graph(net, train_loader)
 
     for epoch in t:
         train_loss = 0
@@ -170,7 +193,7 @@ def train_net(dataset, splits, model_dir, metrics_path, n_epochs=100, lr=0.01, b
         metrics.update(epoch, train_loss, valid_loss)
 
     save_network(model_dir, net)
-    metrics.save(metrics_path)
+    metrics.finalize(metrics_path)
 
 
 def validate_net(net, criterion, valid_loader, device):
@@ -194,6 +217,6 @@ def validate_net(net, criterion, valid_loader, device):
             valid_loss += loss
 
         # FIXME
-        valid_loss /= len(valid_loader) * 1024
+        valid_loss /= len(valid_loader)
 
     return valid_loss

@@ -23,8 +23,10 @@ def parse_args():
 
     parser.add_argument('--dataset-folder', default='datasets', type=str,
                         help='name of the directory containing the datasets (default: datasets)')
-    parser.add_argument('--model-folder', default='models', type=str,
+    parser.add_argument('--models-folder', default='models', type=str,
                         help='name of the directory containing the models (default: models)')
+    parser.add_argument('--tensorboard-folder', default='tensorboard', type=str,
+                        help='name of the directory containing Tensorboard logs (default: tensorboard)')
 
     parser.add_argument('--model', default='net1', type=str,
                         help='name of the model (default: net1)')
@@ -48,7 +50,7 @@ if __name__ == '__main__':
 
     for controller in controllers:
         run_dir, run_img_dir, run_video_dir = directory_for_dataset(args, controller)
-        model_dir, model_img_dir, model_video_dir, metrics_path = directory_for_model(args)
+        model_dir, model_img_dir, model_video_dir, metrics_path, tboard_dir = directory_for_model(args)
 
         if args.generate_dataset:
             from simulations import GenerateSimulationData as sim
@@ -77,11 +79,13 @@ if __name__ == '__main__':
         if controller == 'omniscient':
             if args.train_net:
                 print('Training model %s…' % args.model)
+                print()
+
                 from neural_networks import train_net
 
                 dataset, splits = load_dataset(run_dir, load_splits=True)
 
-                train_net(dataset, splits, model_dir, metrics_path)
+                train_net(dataset, splits, model_dir, metrics_path, tboard_dir)
 
             if args.evaluate_net:
                 print('Generating plots for model %s…' % args.model)
