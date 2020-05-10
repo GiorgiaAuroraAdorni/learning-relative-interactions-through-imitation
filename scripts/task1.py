@@ -80,25 +80,28 @@ if __name__ == '__main__':
 
         if args.plots_dataset:
             from plots import plot_distance_from_goal, plot_position_over_time, \
-                plot_goal_reached_distribution, plot_sensors, plot_trajectory, plot_initial_positions
+    plot_goal_reached_distribution, plot_sensors, plot_trajectory, plot_initial_positions, plot_trajectories
 
             print('Generating plots for %s…' % omniscient_controller)
 
-            plot_distance_from_goal(runs_dir_omniscient, img_dir_omniscient,
-                                    'distances-from-goal-%s' % omniscient_controller)
+            # plot_distance_from_goal(runs_dir_omniscient, img_dir_omniscient,
+            #                         'distances-from-goal-%s' % omniscient_controller)
+            #
+            # plot_position_over_time(runs_dir_omniscient, img_dir_omniscient,
+            #                         'pose-over-time-%s' % omniscient_controller)
+            #
+            # plot_goal_reached_distribution(runs_dir_omniscient, img_dir_omniscient,
+            #                                'goal-reached-%s' % omniscient_controller)
+            #
+            # plot_trajectory(runs_dir_omniscient, img_dir_omniscient, 'robot-trajectory-%s' % omniscient_controller)
 
-            plot_position_over_time(runs_dir_omniscient, img_dir_omniscient,
-                                    'pose-over-time-%s' % omniscient_controller)
+            plot_trajectories(runs_dir_omniscient, img_dir_omniscient,
+                              '10-robot-trajectories-%s' % omniscient_controller)
 
-            plot_goal_reached_distribution(runs_dir_omniscient, img_dir_omniscient,
-                                           'goal-reached-%s' % omniscient_controller)
+            # plot_sensors(runs_dir_omniscient, video_dir_omniscient,
+            #              'sensors-control-response-over-time-%s' % omniscient_controller)
 
-            plot_trajectory(runs_dir_omniscient, img_dir_omniscient, 'robot-trajectory-%s' % omniscient_controller)
-
-            plot_sensors(runs_dir_omniscient, video_dir_omniscient,
-                         'sensors-control-response-over-time-%s' % omniscient_controller)
-
-            plot_initial_positions(runs_dir_omniscient, img_dir_omniscient, 'initial-positions')
+            # plot_initial_positions(runs_dir_omniscient, img_dir_omniscient, 'initial-positions')
 
         if args.generate_splits:
             print('Generating splits…')

@@ -251,6 +251,105 @@ def plot_trajectory(runs_dir, img_dir, filename):
     save_visualisation(filename, img_dir)
 
 
+def plot_trajectories(runs_dir, img_dir, filename):
+    """
+
+    :param runs_dir:
+    :param img_dir:
+    :param filename:
+    """
+    dataset_states = load_dataset(runs_dir)
+
+    run_states_10 = dataset_states.where(dataset_states.run == 10, drop=True)
+
+    goal_position = run_states_10.goal_position[0]
+    goal_angle = run_states_10.goal_angle[0]
+
+    fig, ax = plt.subplots(figsize=(7.8, 4.8), constrained_layout=True)
+
+    ax.set_xlabel('x axis', fontsize=11)
+    ax.set_ylabel('y axis', fontsize=11)
+
+    ax.grid()
+
+    obj_points = Point.from_list([
+        (-0.5, 1, 1), (1.5, 1, 1), (1.5, 0.5, 1), (0, 0.5, 1),
+        (0, -0.5, 1), (1.5, -0.5, 1), (1.5, -1, 1), (-0.5, -1, 1)
+    ])
+
+    obj_tform = Transform.scale(20)
+    obj_points = obj_points.transformed(obj_tform).to_euclidean().T
+
+    ax.add_patch(plt.Polygon(obj_points,
+                             facecolor=colors.to_rgba([0, 0.5, 0.5], alpha=0.5),
+                             edgecolor=[0, 0.5, 0.5],
+                             linewidth=1.5,
+                             label='docking station'))
+
+    points = Point.from_list([
+        Point.ORIGIN,
+        [1, -3, 1], [1, 3, 1], [6, 0, 1]
+    ])
+
+    goal_tform = Transform.pose_transform(goal_position, goal_angle)
+    goal_points = points.transformed(goal_tform).to_euclidean().T
+
+    radius = 8.5
+    ax.add_patch(plt.Circle(goal_points[0], radius,
+                            facecolor=colors.to_rgba('tab:orange', alpha=0.5),
+                            edgecolor='tab:orange', linewidth=1.5,
+                            label='goal position'))
+    ax.add_patch(plt.Polygon(goal_points[1:],
+                             facecolor=colors.to_rgba('tab:orange', alpha=0),
+                             edgecolor='tab:orange'))
+
+    init_position = run_states_10.initial_position[0]
+    init_angle = run_states_10.initial_angle[0]
+
+    x_position, y_position = unpack(run_states_10.position, 'axis')
+
+    origin_tform = Transform.pose_transform(init_position, init_angle)
+    origin_points = points.transformed(origin_tform).to_euclidean().T
+
+    ax.add_patch(plt.Circle(origin_points[0], radius,
+                            facecolor=colors.to_rgba('tab:blue', alpha=0.5),
+                            edgecolor='tab:blue', linewidth=1.5,
+                            label='initial position'))
+    ax.add_patch(plt.Polygon(origin_points[1:],
+                             facecolor=colors.to_rgba('tab:blue', alpha=0),
+                             edgecolor='tab:blue'))
+
+    plt.plot(x_position, y_position, color='black', label='trajectory')
+
+    runs = np.arange(10)
+    for run in runs:
+        run_states = dataset_states.where(dataset_states.run == run, drop=True)
+
+        init_position = run_states.initial_position[0]
+        init_angle = run_states.initial_angle[0]
+
+        x_position, y_position = unpack(run_states.position, 'axis')
+
+        origin_tform = Transform.pose_transform(init_position, init_angle)
+        origin_points = points.transformed(origin_tform).to_euclidean().T
+
+        ax.add_patch(plt.Circle(origin_points[0], radius,
+                                facecolor=colors.to_rgba('tab:blue', alpha=0.5),
+                                edgecolor='tab:blue', linewidth=1.5))
+        ax.add_patch(plt.Polygon(origin_points[1:],
+                                 facecolor=colors.to_rgba('tab:blue', alpha=0),
+                                 edgecolor='tab:blue'))
+
+        plt.plot(x_position, y_position, color='black')
+
+    ax.set_ylim(-220, 220)
+    ax.set_xlim(-250, 250)
+    ax.set_aspect('equal')
+
+    plt.legend()
+    save_visualisation(filename, img_dir)
+
+
 def plot_sensors(runs_dir, video_dir, filename):
     """
 
