@@ -2,7 +2,6 @@ import re
 
 import numpy as np
 import pyenki
-import torch
 from tqdm import tqdm
 
 from controllers import controllers_task1
@@ -10,26 +9,26 @@ from dataset import DatasetBuilder
 from geometry import Point, Transform
 from kinematics import euclidean_distance, angle_difference
 from marxbot import MyMarxbot
+from neural_networks import load_network
 
 
 class GenerateSimulationData:
-    OMNISCIENT_CONTROLLER = "omniscient-controller"
-    LEARNED_CONTROLLER = r"^learned-controller-net\d"
+    OMNISCIENT_CONTROLLER = "omniscient"
+    LEARNED_CONTROLLER = r"^learned"
 
     @classmethod
-    def generate_simulation(cls, n_simulations, controller, args, model_dir=None, model=None):
+    def generate_simulation(cls, n_simulations, controller, args, model_dir):
         """
 
         :param n_simulations:
         :param controller:
         :param args:
-        :param model_dir:
-        :param model:
+        :param model_dir
         """
         if controller == cls.OMNISCIENT_CONTROLLER:
             controller_factory = controllers_task1.OmniscientController
         elif re.match(cls.LEARNED_CONTROLLER, controller):
-            net = torch.load('%s/%s' % (model_dir, model))
+            net = load_network(model_dir)
 
             def controller_factory():
                 return controllers_task1.LearnedController(net=net)
@@ -63,6 +62,8 @@ class GenerateSimulationData:
                 cls.run(marxbot, world, builder, template, args.gui)
             except Exception as e:
                 print('ERROR: ', e)
+                import traceback
+                traceback.print_tb(e.__traceback__)
 
         dataset = builder.finalize()
 

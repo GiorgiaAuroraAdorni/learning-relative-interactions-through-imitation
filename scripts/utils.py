@@ -21,7 +21,7 @@ def directory_for_dataset(args, controller):
     run_img_dir = os.path.join(run_dir, 'images')
     check_dir(run_img_dir)
 
-    run_video_dir = os.path.join(run_img_dir, 'videos')
+    run_video_dir = os.path.join(run_dir, 'videos')
     check_dir(run_video_dir)
 
     return run_dir, run_img_dir, run_video_dir
@@ -38,7 +38,7 @@ def directory_for_model(args):
     model_img_dir = os.path.join(model_dir, 'images')
     check_dir(model_img_dir)
 
-    model_video_dir = os.path.join(model_img_dir, 'videos')
+    model_video_dir = os.path.join(model_dir, 'videos')
     check_dir(model_video_dir)
 
     metrics_path = os.path.join(model_dir, 'metrics.pkl')

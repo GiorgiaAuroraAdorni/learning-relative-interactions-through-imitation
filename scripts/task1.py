@@ -31,9 +31,7 @@ def parse_args():
     parser.add_argument('--train-net', action="store_true",
                         help='train the model  (default: False)')
     parser.add_argument('--evaluate-net', action="store_true",
-                        help='evaluate the model  (default: False)')
-    parser.add_argument('--plots-net', action="store_true",
-                        help='generate the plots of regarding the model (default: False)')
+                        help='generate the plots regarding the model  (default: False)')
 
     args = parser.parse_args()
 
@@ -50,14 +48,17 @@ if __name__ == '__main__':
 
     for controller in controllers:
         run_dir, run_img_dir, run_video_dir = directory_for_dataset(args, controller)
+        model_dir, model_img_dir, model_video_dir, metrics_path = directory_for_model(args)
 
         if args.generate_dataset:
             from simulations import GenerateSimulationData as sim
 
-            print('Generating n_simulations for %s controller…' % controller)
-            dataset = sim.generate_simulation(n_simulations=args.n_simulations, controller=controller, args=args)
+            print('Generating %s simulations for %s controller…' % (args.n_simulations, controller))
+            dataset = sim.generate_simulation(n_simulations=args.n_simulations,
+                                              controller=controller, args=args,
+                                              model_dir=model_dir)
 
-            print('Saving dataset for %s controller …' % controller)
+            print('Saving dataset for %s controller…' % controller)
             save_dataset(run_dir, dataset=dataset)
             print()
 
@@ -74,8 +75,6 @@ if __name__ == '__main__':
             save_dataset(run_dir, splits=splits)
 
         if controller == 'omniscient':
-            model_dir, model_img_dir, model_video_dir, metrics_path = directory_for_model(args)
-
             if args.train_net:
                 print('Training model %s…' % args.model)
                 from neural_networks import train_net

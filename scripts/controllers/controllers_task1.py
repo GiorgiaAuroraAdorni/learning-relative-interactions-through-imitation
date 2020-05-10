@@ -153,9 +153,8 @@ class LearnedController(Controller):
         if self.net is None:
             raise ValueError("Value for net not provided")
 
-        self.net_controller = net.controller()
-
-    def input_to_tensor(self, state):
+    @staticmethod
+    def input_to_tensor(state):
         """
         :param state
         :return input:
@@ -170,10 +169,10 @@ class LearnedController(Controller):
         # Concatenate the two variables to a single array and transpose the dimensions
         # to match the PyTorch convention of samples ⨉ channels ⨉ angles
         scanner_data = np.concatenate([scanner_image, scanner_distances], axis=-1)
-        scanner_data = np.transpose(scanner_data)
+        scanner_data = np.expand_dims(np.transpose(scanner_data), 0)
 
         # FIXME: maybe save directly as float32?
-        input = torch.as_tensor(scanner_data.data, dtype=torch.float)
+        input = torch.as_tensor(scanner_data, dtype=torch.float)
 
         return input
 
@@ -188,6 +187,7 @@ class LearnedController(Controller):
         """
         input = self.input_to_tensor(state)
 
-        left_vel, right_vel = self.net(input)
+        velocities = torch.squeeze(self.net(input))
+        left_vel, right_vel = velocities.detach().tolist()
 
         return left_vel, right_vel
