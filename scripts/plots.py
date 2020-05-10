@@ -132,8 +132,8 @@ def plot_position_over_time(runs_dir, img_dir, filename):
     texts = ["x axis", "y axis"]
     patches = [mpatches.Patch(color=colors[i], label="{:s}".format(texts[i])) for i in range(len(texts))]
 
-    handles = [patches[0], handles[0], handles[2], handles[4], patches[1], handles[1], handles[3], handles[5]]
-    labels = [texts[0], labels[0], labels[2], labels[4], texts[1], labels[1], labels[3], labels[5]]
+    handles = [patches[0], handles[0], handles[2], handles[3], patches[1], handles[1], handles[4], handles[5]]
+    labels = [texts[0], labels[0], labels[2], labels[3], texts[1], labels[1], labels[4], labels[5]]
 
     plt.legend(handles=handles, labels=labels, loc='lower center', fontsize=11, bbox_to_anchor=(0.5, -0.3), ncol=2)
 
