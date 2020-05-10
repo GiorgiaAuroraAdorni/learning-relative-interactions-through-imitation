@@ -85,33 +85,29 @@ if __name__ == '__main__':
             print('Generating plots for %s…' % omniscient_controller)
 
             plot_distance_from_goal(runs_dir_omniscient, img_dir_omniscient,
-                                    'Robot distance from goal - %s' % omniscient_controller,
                                     'distances-from-goal-%s' % omniscient_controller)
 
             plot_position_over_time(runs_dir_omniscient, img_dir_omniscient,
-                                    'Robot position over time - %s' % omniscient_controller,
                                     'pose-over-time-%s' % omniscient_controller)
 
             plot_goal_reached_distribution(runs_dir_omniscient, img_dir_omniscient,
-                                           'Distribution of the goal reached - %s' % omniscient_controller,
                                            'goal-reached-%s' % omniscient_controller)
 
-            plot_trajectory(runs_dir_omniscient, img_dir_omniscient, 'Robot trajectory - %s' % omniscient_controller,
-                            'robot-trajectory-%s' % omniscient_controller)
+            plot_trajectory(runs_dir_omniscient, img_dir_omniscient, 'robot-trajectory-%s' % omniscient_controller)
 
             plot_sensors(runs_dir_omniscient, video_dir_omniscient,
-                         '%s' % omniscient_controller,
                          'sensors-control-response-over-time-%s' % omniscient_controller)
 
-            plot_initial_positions(runs_dir_omniscient, img_dir_omniscient, 'Initial positions',
-                                   'initial-positions')
+            plot_initial_positions(runs_dir_omniscient, img_dir_omniscient, 'initial-positions')
 
         if args.generate_splits:
+            print('Generating splits…')
             dataset = load_dataset(runs_dir_omniscient)
             splits = generate_splits(dataset)
             save_dataset(runs_dir_omniscient, splits=splits)
 
         if args.train_net:
+            print('Training model %s…' % args.model)
             from neural_networks import train_net
 
             dataset, splits = load_dataset(runs_dir_omniscient, load_splits=True)
@@ -119,6 +115,7 @@ if __name__ == '__main__':
             train_net(dataset, splits, model_dir, args.model, file_metrics)
 
         if args.evaluate_net:
+            print('Generating plots for model %s…' % args.model)
             from network_evaluation import evaluate_net
 
             dataset, splits = load_dataset(runs_dir_omniscient, load_splits=True)
