@@ -131,13 +131,14 @@ def train_net(dataset, splits, model_dir, metrics_path, n_epochs=100, lr=0.01, b
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     net = ConvNet()
-    net.to(device, non_blocking=True)
+    net.to(device)
 
     print("Device:", device)
     print("Model:", net)
 
-    n_params = list(np.prod(param.size()) for param in net.parameters())
-    print("Parameters:", n_params)
+    params = {key: [np.product(param.size()) for param in child.parameters()] for key, child in net.named_children()}
+    n_params = sum(sum(p) for p in params.values())
+    print("Parameters:", n_params, params)
 
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=lr)
