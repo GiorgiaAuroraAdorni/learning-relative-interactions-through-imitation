@@ -13,6 +13,22 @@ from kinematics import to_robot_velocities
 from utils import unpack
 
 
+def generate_dataset_plots(run_dir, img_dir, video_dir):
+    """
+
+    :param run_dir:
+    :param img_dir:
+    :param video_dir:
+    """
+    plot_distance_from_goal(run_dir, img_dir, 'distances-from-goal')
+    plot_position_over_time(run_dir, img_dir, 'pose-over-time')
+    plot_goal_reached_distribution(run_dir, img_dir, 'goal-reached')
+    plot_trajectory(run_dir, img_dir, 'robot-trajectory')
+    plot_trajectories(run_dir, img_dir, '10-robot-trajectories')
+    plot_sensors(run_dir, video_dir, 'sensors-control-response-over-time')
+    plot_initial_positions(run_dir, img_dir, 'initial-positions')
+
+
 def save_visualisation(filename, img_dir, make_space=False, axes=None):
     """
 

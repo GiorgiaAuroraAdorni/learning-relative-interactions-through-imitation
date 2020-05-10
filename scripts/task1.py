@@ -1,8 +1,7 @@
 import argparse
-import os
 
 from dataset import load_dataset, save_dataset, generate_splits
-from utils import check_dir
+from utils import directory_for_dataset, directory_for_model
 
 
 def parse_args():
@@ -44,83 +43,50 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
 
-    runs_dir = os.path.join(args.dataset_folder)
-    check_dir(runs_dir)
+    if args.controller == 'all':
+        controllers = ['omniscient', 'learned']
+    else:
+        controllers = [args.controller]
 
-    omniscient_controller = "omniscient-controller"
+    for controller in controllers:
+        run_dir, run_img_dir, run_video_dir = directory_for_dataset(args, controller)
 
-    runs_dir_omniscient = os.path.join(runs_dir, omniscient_controller)
-    check_dir(runs_dir_omniscient)
-
-    img_dir_omniscient = os.path.join(runs_dir_omniscient, 'images')
-    check_dir(img_dir_omniscient)
-
-    video_dir_omniscient = os.path.join(runs_dir_omniscient, 'videos')
-    check_dir(video_dir_omniscient)
-
-    model_dir = os.path.join(args.models_folder, args.model)
-    check_dir(model_dir)
-
-    img_dir_model = os.path.join(model_dir, 'images')
-    check_dir(img_dir_model)
-
-    metrics_path = os.path.join(model_dir, 'metrics.pkl')
-
-    if args.controller == 'all' or args.controller == 'omniscient':
         if args.generate_dataset:
             from simulations import GenerateSimulationData as sim
 
-            print('Generating n_simulations for %s…' % omniscient_controller)
-            dataset = sim.generate_simulation(
-                n_simulations=args.n_simulations, controller=omniscient_controller, args=args
-            )
-            print('Saving dataset for %s…' % omniscient_controller)
-            save_dataset(runs_dir_omniscient, dataset=dataset)
+            print('Generating n_simulations for %s controller…' % controller)
+            dataset = sim.generate_simulation(n_simulations=args.n_simulations, controller=controller, args=args)
+
+            print('Saving dataset for %s controller …' % controller)
+            save_dataset(run_dir, dataset=dataset)
             print()
 
         if args.plots_dataset:
-            from plots import plot_distance_from_goal, plot_position_over_time, \
-    plot_goal_reached_distribution, plot_sensors, plot_trajectory, plot_initial_positions, plot_trajectories
+            from plots import generate_dataset_plots
 
-            print('Generating plots for %s…' % omniscient_controller)
-
-            # plot_distance_from_goal(runs_dir_omniscient, img_dir_omniscient,
-            #                         'distances-from-goal-%s' % omniscient_controller)
-            #
-            # plot_position_over_time(runs_dir_omniscient, img_dir_omniscient,
-            #                         'pose-over-time-%s' % omniscient_controller)
-            #
-            # plot_goal_reached_distribution(runs_dir_omniscient, img_dir_omniscient,
-            #                                'goal-reached-%s' % omniscient_controller)
-            #
-            # plot_trajectory(runs_dir_omniscient, img_dir_omniscient, 'robot-trajectory-%s' % omniscient_controller)
-
-            plot_trajectories(runs_dir_omniscient, img_dir_omniscient,
-                              '10-robot-trajectories-%s' % omniscient_controller)
-
-            # plot_sensors(runs_dir_omniscient, video_dir_omniscient,
-            #              'sensors-control-response-over-time-%s' % omniscient_controller)
-
-            # plot_initial_positions(runs_dir_omniscient, img_dir_omniscient, 'initial-positions')
+            print('Generating plots for %s controller…' % controller)
+            generate_dataset_plots(run_dir, run_img_dir, run_video_dir)
 
         if args.generate_splits:
             print('Generating splits…')
-            dataset = load_dataset(runs_dir_omniscient)
+            dataset = load_dataset(run_dir)
             splits = generate_splits(dataset)
-            save_dataset(runs_dir_omniscient, splits=splits)
+            save_dataset(run_dir, splits=splits)
 
-        if args.train_net:
-            print('Training model %s…' % args.model)
-            from neural_networks import train_net
+        if controller == 'omniscient':
+            model_dir, model_img_dir, model_video_dir, metrics_path = directory_for_model(args)
 
-            dataset, splits = load_dataset(runs_dir_omniscient, load_splits=True)
+            if args.train_net:
+                print('Training model %s…' % args.model)
+                from neural_networks import train_net
 
-            train_net(dataset, splits, model_dir, metrics_path)
+                dataset, splits = load_dataset(run_dir, load_splits=True)
 
-        if args.evaluate_net:
-            print('Generating plots for model %s…' % args.model)
-            from network_evaluation import evaluate_net
+                train_net(dataset, splits, model_dir, metrics_path)
 
-            dataset, splits = load_dataset(runs_dir_omniscient, load_splits=True)
-            evaluate_net(dataset, splits, model_dir, img_dir_model, metrics_path)
+            if args.evaluate_net:
+                print('Generating plots for model %s…' % args.model)
+                from network_evaluation import evaluate_net
 
+                dataset, splits = load_dataset(run_dir, load_splits=True)
+                evaluate_net(dataset, splits, model_dir, model_img_dir, metrics_path)
