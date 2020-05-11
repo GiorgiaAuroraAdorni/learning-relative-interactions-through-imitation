@@ -401,8 +401,35 @@ def plot_initial_positions(runs_dir, img_dir, filename):
 
     plt.figure(figsize=(7.8, 4.8), constrained_layout=True)
 
-    plt.scatter(x, y, alpha=0.2)
+    plt.scatter(x, y, alpha=0.2, label='initial positions')
+
+    ax = plt.gca()
+
+    draw_docking_station(ax)
+
+    # TODO: extract method
+    radius = 8.5
+    goal_position = step_states.goal_position[0]
+    goal_angle = step_states.goal_angle[0]
+
+    points = Point.from_list([
+        Point.ORIGIN,
+        [1, -3, 1], [1, 3, 1], [6, 0, 1]
+    ])
+
+    goal_tform = Transform.pose_transform(goal_position, goal_angle)
+    goal_points = points.transformed(goal_tform).to_euclidean().T
+
+    ax.add_patch(plt.Circle(goal_points[0], radius,
+                            facecolor=colors.to_rgba('tab:orange', alpha=0.5),
+                            edgecolor='tab:orange', linewidth=1.5,
+                            label='goal position'))
+    ax.add_patch(plt.Polygon(goal_points[1:],
+                             facecolor=colors.to_rgba('tab:orange', alpha=0),
+                             edgecolor='tab:orange'))
+
     plt.axis('equal')
+    plt.legend()
 
     plt.xlabel('x axis', fontsize=11)
     plt.ylabel('y axis', fontsize=11)
