@@ -84,7 +84,7 @@ class NetMetrics:
 
         self.writer.add_graph(model, inputs)
 
-    def update(self, epoch, train_loss, valid_loss):
+    def update(self, epoch, train_loss, valid_loss, patience_lost):
         """
 
         :param epoch
@@ -97,15 +97,37 @@ class NetMetrics:
         self.writer.add_scalar('loss/train', train_loss, epoch)
         self.writer.add_scalar('loss/validation', valid_loss, epoch)
 
-        self.t.set_postfix(metrics)
+        self.t.set_postfix(metrics, patience_lost=patience_lost)
 
     def finalize(self):
-        """
-
-        :param out_file
-        """
         self.df.to_pickle(self.metrics_path)
         self.writer.close()
+
+
+class StreamingMean:
+    """
+    Compute the (possibly weighted) mean of a sequence of values in streaming fashion.
+
+    This class stores the current mean and current sum of the weights and updates
+    them when a new data point comes in.
+
+    This should have better stability than summing all samples and dividing at the
+    end, since here the partial mean is always kept at the same scale as the samples.
+    """
+    def __init__(self):
+        self.reset()
+
+    def update(self, sample, weight=1.0):
+        self._weights += weight
+        self._mean += weight / self._weights * (sample - self._mean)
+
+    def reset(self):
+        self._weights = 0.0
+        self._mean = 0.0
+
+    @property
+    def mean(self):
+        return self._mean
 
 
 def to_torch_loader(dataset, **kwargs):
@@ -162,11 +184,16 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=100
     train_loader = to_torch_loader(train, batch_size=batch_size, shuffle=True, pin_memory=True)
     valid_loader = to_torch_loader(validation, batch_size=batch_size, shuffle=False, pin_memory=True)
 
+    # Create the neural network and optimizer
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     net = ConvNet()
     net.to(device)
 
+    criterion = nn.MSELoss()
+    optimizer = torch.optim.Adam(net.parameters(), lr=lr)
+
+    # Print model information
     print("Device:", device)
     print("Model:", net)
 
@@ -175,16 +202,21 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=100
     print("Parameters:", n_params, params)
     print()
 
-    criterion = nn.MSELoss()
-    optimizer = torch.optim.Adam(net.parameters(), lr=lr)
+    # Support objects for metrics and validation
+    train_loss = StreamingMean()
+
+    validator = NetValidator(valid_loader, criterion, device)
 
     t = tqdm.trange(n_epochs, unit='epoch')
 
     metrics = NetMetrics(t, metrics_path, tboard_dir)
     metrics.add_graph(net, device, train_loader)
 
+    stopping = EarlyStopping()
+
+    # Main training loop
     for epoch in t:
-        train_loss = 0
+        train_loss.reset()
 
         for batch in train_loader:
             inputs, targets = (tensor.to(device) for tensor in batch)
@@ -198,38 +230,78 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=100
             loss.backward()
             optimizer.step()
 
-            train_loss += loss
+            # Accumulate metrics across batches
+            train_loss.update(loss, inputs.shape[0])
 
-        train_loss /= len(train_loader)
-        valid_loss = validate_net(net, criterion, valid_loader, device)
+        # Perform model validation
+        valid_loss = validator.validate(net)
 
-        metrics.update(epoch, train_loss, valid_loss)
+        # Check early stopping
+        should_stop, patience_lost = stopping.should_stop(net, valid_loss, epoch)
+
+        if should_stop:
+            print("Interrupting training early. Validation loss hasn't improved in %d epochs." % stopping.patience)
+            break
+
+        # Record the metrics for the current epoch
+        metrics.update(epoch, train_loss.mean, valid_loss, patience_lost)
+
+    # Restore the model with the best validation loss
+    best_epoch = stopping.restore_best_net(net)
+    print("Restoring best network from epoch %d." % best_epoch)
 
     save_network(model_dir, net)
     metrics.finalize()
 
 
-def validate_net(net, criterion, valid_loader, device):
+class NetValidator:
+    def __init__(self, valid_loader: data.DataLoader, criterion, device):
+        self.criterion = criterion
+        self.valid_loader = valid_loader
+        self.device = device
+
+        self.valid_loss = StreamingMean()
+
+    def validate(self, net):
+        with torch.no_grad():
+            self.valid_loss.reset()
+
+            for batch in self.valid_loader:
+                inputs, targets = (tensor.to(self.device) for tensor in batch)
+
+                outputs = net(inputs)
+                loss = self.criterion(outputs, targets)
+
+                self.valid_loss.update(loss, inputs.shape[0])
+
+        return self.valid_loss.mean
+
+
+class EarlyStopping:
     """
-
-    :param net:
-    :param criterion:
-    :param valid_loader:
-    :param device:
-    :return:
+    Implement early stopping by keeping track of the model with the best validation
+    loss seen so far. If validation loss doesn't improve for `patience` epochs in a
+    row, interrupt the training.
     """
-    with torch.no_grad():
-        valid_loss = 0
+    def __init__(self, patience=10):
+        self.patience = patience
 
-        for batch in valid_loader:
-            inputs, targets = (tensor.to(device) for tensor in batch)
+        self.best_loss = np.inf
+        self.best_epoch = None
+        self.best_net = None
 
-            outputs = net(inputs)
-            loss = criterion(outputs, targets)
+    def should_stop(self, net, loss, epoch):
+        if loss <= self.best_loss:
+            self.best_loss = loss
+            self.best_epoch = epoch
+            self.best_net = net.state_dict()
 
-            valid_loss += loss
+        patience_lost = epoch - self.best_epoch
+        should_stop = (patience_lost == self.patience)
 
-        # FIXME
-        valid_loss /= len(valid_loader)
+        return should_stop, patience_lost
 
-    return valid_loss
+    def restore_best_net(self, net):
+        net.load_state_dict(self.best_net)
+
+        return self.best_epoch
