@@ -36,15 +36,19 @@ def evaluate_net(dataset, splits, model_dir, img_dir_model, file_metrics):
     :param file_metrics:
     :return:
     """
-    net = load_network(model_dir)
-
     losses = pd.read_pickle(file_metrics)
     training_loss = losses.loc[:, 't. loss']
     validation_loss = losses.loc[:, 'v. loss']
 
     train, validation, _ = split_datasets(dataset, splits)
     valid_loader = to_torch_loader(validation, batch_size=1024, shuffle=False, pin_memory=True)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Forcing evaluation on the CPU because part of the code below don't expect
+    # GPU tensors. I think evaluating on the CPU makes sense anyway, since speed
+    # is very fast already and this leaves the GPU free to concurrently train
+    # another model. TODO: re-evaluate
+    device = torch.device("cpu")
+    net = load_network(model_dir, device)
 
     prediction, groundtruth = get_predictions(net, valid_loader, device)
 

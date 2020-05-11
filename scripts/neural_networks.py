@@ -17,16 +17,23 @@ class ConvNet(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.conv1 = nn.Conv1d(in_channels=4, out_channels=16, kernel_size=3,
-                               stride=2, padding=1, padding_mode='circular')
-        self.conv2 = nn.Conv1d(in_channels=16, out_channels=32, kernel_size=3,
-                               stride=2, padding=1, padding_mode='circular')
-        self.maxp1 = nn.MaxPool1d(3)
-        self.conv3 = nn.Conv1d(in_channels=32, out_channels=32, kernel_size=3,
-                               stride=1, padding=1, padding_mode='circular')
+        # Using BatchNorm somewhat improperly as an input normalization step.
+        # This layer applies the transformation y = (x - mu) / std using per-channel
+        # mean and stdev over the train set. After that, z = alpha * y + beta,
+        # where alpha and beta are learned parameters, which allow the model to
+        # learn the best scaling for the data.
+        self.in_norm = nn.BatchNorm1d(num_features=4)
 
-        self.fc1 = nn.Linear(15 * 32, 32)
-        self.fc2 = nn.Linear(32, 2)
+        self.conv1 = nn.Conv1d(in_channels=4, out_channels=16, kernel_size=5,
+                               stride=2, padding=2, padding_mode='circular')
+        self.conv2 = nn.Conv1d(in_channels=16, out_channels=32, kernel_size=5,
+                               stride=2, padding=2, padding_mode='circular')
+        self.conv3 = nn.Conv1d(in_channels=32, out_channels=32, kernel_size=5,
+                               stride=1, padding=2, padding_mode='circular')
+
+        self.fc1 = nn.Linear(45 * 32, 128)
+        self.fc2 = nn.Linear(128, 128)
+        self.fc3 = nn.Linear(128, 2)
 
     def forward(self, input):
         """
@@ -34,15 +41,17 @@ class ConvNet(nn.Module):
         :param input: input tensor with shape samples ⨉ channels ⨉ angles
         :return: output tensor with shape samples ⨉ wheels
         """
-        net = F.relu(self.conv1(input))
+        net = self.in_norm(input)
+
+        net = F.relu(self.conv1(net))
         net = F.relu(self.conv2(net))
-        net = self.maxp1(net)
         net = F.relu(self.conv3(net))
 
         net = torch.flatten(net, start_dim=1)
 
         net = F.relu(self.fc1(net))
-        output = self.fc2(net)
+        net = F.relu(self.fc2(net))
+        output = self.fc3(net)
 
         return output
 
@@ -78,10 +87,11 @@ class NetMetrics:
     def update(self, epoch, train_loss, valid_loss):
         """
 
+        :param epoch
         :param train_loss
         :param valid_loss
         """
-        metrics = {self.TRAIN_LOSS: train_loss, self.VALIDATION_LOSS: valid_loss}
+        metrics = {self.TRAIN_LOSS: float(train_loss), self.VALIDATION_LOSS: float(valid_loss)}
         self.df = self.df.append(metrics, ignore_index=True)
 
         self.writer.add_scalar('loss/train', train_loss, epoch)
@@ -134,7 +144,7 @@ def load_network(model_dir, device='cpu'):
     return net
 
 
-def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=100, lr=0.01, batch_size=1024):
+def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=100, lr=0.01, batch_size=2**14):
     """
 
     :param dataset:
@@ -196,7 +206,7 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=100
         metrics.update(epoch, train_loss, valid_loss)
 
     save_network(model_dir, net)
-    metrics.finalize(metrics_path)
+    metrics.finalize()
 
 
 def validate_net(net, criterion, valid_loader, device):
