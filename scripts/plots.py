@@ -296,19 +296,7 @@ def plot_trajectories(runs_dir, img_dir, filename):
 
     ax.grid()
 
-    obj_points = Point.from_list([
-        (-0.5, 1, 1), (1.5, 1, 1), (1.5, 0.5, 1), (0, 0.5, 1),
-        (0, -0.5, 1), (1.5, -0.5, 1), (1.5, -1, 1), (-0.5, -1, 1)
-    ])
-
-    obj_tform = Transform.scale(20)
-    obj_points = obj_points.transformed(obj_tform).to_euclidean().T
-
-    ax.add_patch(plt.Polygon(obj_points,
-                             facecolor=colors.to_rgba([0, 0.5, 0.5], alpha=0.5),
-                             edgecolor=[0, 0.5, 0.5],
-                             linewidth=1.5,
-                             label='docking station'))
+    draw_docking_station(ax)
 
     points = Point.from_list([
         Point.ORIGIN,
