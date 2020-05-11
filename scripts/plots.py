@@ -4,6 +4,7 @@ import matplotlib.colors as colors
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from sklearn.linear_model import LinearRegression
 
 import viz
@@ -27,6 +28,7 @@ def generate_dataset_plots(run_dir, img_dir, video_dir):
     plot_trajectories(run_dir, img_dir, '10-robot-trajectories')
     plot_sensors(run_dir, video_dir, 'sensors-control-response-over-time')
     plot_initial_positions(run_dir, img_dir, 'initial-positions')
+    plot_positions_heatmap(run_dir, img_dir, 'positions-heatmap')
 
 
 def save_visualisation(filename, img_dir, make_space=False, axes=None):
@@ -186,6 +188,24 @@ def plot_goal_reached_distribution(runs_dir, img_dir, filename):
     save_visualisation(filename, img_dir)
 
 
+def draw_docking_station(ax):
+    obj_points = Point.from_list([
+        (-0.5, 1, 1), (1.5, 1, 1), (1.5, 0.5, 1), (0, 0.5, 1),
+        (0, -0.5, 1), (1.5, -0.5, 1), (1.5, -1, 1), (-0.5, -1, 1)
+    ])
+
+    obj_tform = Transform.scale(20)
+    obj_points = obj_points.transformed(obj_tform).to_euclidean().T
+
+    ax.add_patch(plt.Polygon(
+        obj_points,
+        facecolor=colors.to_rgba([0, 0.5, 0.5], alpha=0.5),
+        edgecolor=[0, 0.5, 0.5],
+        linewidth=1.5,
+        label='docking station'
+    ))
+
+
 def plot_trajectory(runs_dir, img_dir, filename):
     """
 
@@ -212,19 +232,7 @@ def plot_trajectory(runs_dir, img_dir, filename):
 
     ax.grid()
 
-    obj_points = Point.from_list([
-        (-0.5, 1, 1), (1.5, 1, 1), (1.5, 0.5, 1),  (0, 0.5, 1),
-        (0, -0.5, 1), (1.5, -0.5, 1), (1.5, -1, 1), (-0.5, -1, 1)
-    ])
-
-    obj_tform = Transform.scale(20)
-    obj_points = obj_points.transformed(obj_tform).to_euclidean().T
-
-    ax.add_patch(plt.Polygon(obj_points,
-                             facecolor=colors.to_rgba([0, 0.5, 0.5], alpha=0.5),
-                             edgecolor=[0, 0.5, 0.5],
-                             linewidth=1.5,
-                             label='docking station'))
+    draw_docking_station(ax)
 
     points = Point.from_list([
         Point.ORIGIN,
@@ -410,6 +418,40 @@ def plot_initial_positions(runs_dir, img_dir, filename):
 
     plt.xlabel('x axis', fontsize=11)
     plt.ylabel('y axis', fontsize=11)
+
+    save_visualisation(filename, img_dir)
+
+
+def plot_positions_heatmap(runs_dir, img_dir, filename):
+    dataset_states = load_dataset(runs_dir)
+
+    x, y = unpack(dataset_states.position, 'axis')
+
+    n_bins = 100
+    grid_x, bins_x = pd.cut(x.data, n_bins, retbins=True)
+    grid_y, bins_y = pd.cut(y.data, n_bins, retbins=True)
+
+    grid = np.stack([grid_y.codes, grid_x.codes])
+    unique, counts = np.unique(grid, axis=-1, return_counts=True)
+
+    mesh = np.zeros([n_bins, n_bins])
+    mesh[unique[0], unique[1]] = counts
+
+    plt.figure()
+
+    cmap = plt.get_cmap('viridis')
+    cmap.set_over('w')
+
+    plt.pcolormesh(bins_x, bins_y, mesh, cmap=cmap, norm=colors.PowerNorm(0.5), vmax=200)
+
+    cbar = plt.colorbar()
+    cbar.set_label('samples per grid cell (clipped)', labelpad=15)
+
+    plt.axis('image')
+    plt.xlabel('x axis', fontsize=11)
+    plt.ylabel('y axis', fontsize=11)
+
+    draw_docking_station(plt.gca())
 
     save_visualisation(filename, img_dir)
 
