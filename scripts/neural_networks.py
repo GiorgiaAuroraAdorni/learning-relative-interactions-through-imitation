@@ -239,12 +239,12 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=100
         # Check early stopping
         should_stop, patience_lost = stopping.should_stop(net, valid_loss, epoch)
 
+        # Record the metrics for the current epoch
+        metrics.update(epoch, train_loss.mean, valid_loss, patience_lost)
+
         if should_stop:
             print("Interrupting training early. Validation loss hasn't improved in %d epochs." % stopping.patience)
             break
-
-        # Record the metrics for the current epoch
-        metrics.update(epoch, train_loss.mean, valid_loss, patience_lost)
 
     # Restore the model with the best validation loss
     best_epoch = stopping.restore_best_net(net)
@@ -283,7 +283,7 @@ class EarlyStopping:
     loss seen so far. If validation loss doesn't improve for `patience` epochs in a
     row, interrupt the training.
     """
-    def __init__(self, patience=10):
+    def __init__(self, patience=20):
         self.patience = patience
 
         self.best_loss = np.inf
