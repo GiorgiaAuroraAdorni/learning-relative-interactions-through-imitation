@@ -1,17 +1,12 @@
-import sys
-import numpy as np
-
 import matplotlib
 import matplotlib.pyplot as plt
-
-from PyQt5.QtWidgets import QApplication
-
-
+import numpy as np
 ## Setup the simulation
 import pyenki
+from PyQt5.QtWidgets import QApplication
 
-import viz
 import controllers.controllers_task1 as controllers
+import viz
 from marxbot import MyMarxbot
 
 world = pyenki.World(200)

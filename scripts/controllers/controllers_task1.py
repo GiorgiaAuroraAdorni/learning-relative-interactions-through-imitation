@@ -1,6 +1,6 @@
-import numpy as np
 from abc import ABC, abstractmethod
 
+import numpy as np
 import torch
 
 from kinematics import to_wheels_velocities, euclidean_distance, angle_difference, steering_angle
