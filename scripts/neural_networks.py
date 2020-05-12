@@ -7,6 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.data as data
 import torch.utils.tensorboard as tensorboard
+import torchsummary
 import tqdm
 import xarray as xr
 
@@ -195,11 +196,7 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=100
 
     # Print model information
     print("Device:", device)
-    print("Model:", net)
-
-    params = {key: [np.product(param.size()) for param in child.parameters()] for key, child in net.named_children()}
-    n_params = sum(sum(p) for p in params.values())
-    print("Parameters:", n_params, params)
+    torchsummary.summary(net, input_size=(4, 180))
     print()
 
     # Support objects for metrics and validation

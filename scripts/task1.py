@@ -89,7 +89,10 @@ if __name__ == '__main__':
 
             if args.evaluate_net:
                 print('Generating plots for model %s…' % args.model)
-                from network_evaluation import evaluate_net
 
+                from plots import plot_initial_positions
+                plot_initial_positions(run_dir, model_img_dir, 'initial-positions')
+
+                from network_evaluation import evaluate_net
                 dataset, splits = load_dataset(run_dir, load_splits=True)
                 evaluate_net(dataset, splits, model_dir, model_img_dir, metrics_path)

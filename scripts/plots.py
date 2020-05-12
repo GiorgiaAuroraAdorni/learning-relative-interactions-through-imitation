@@ -409,6 +409,44 @@ def plot_positions_scatter(runs_dir, img_dir, filename):
     save_visualisation(filename, img_dir)
 
 
+def plot_initial_positions(runs_dir, img_dir, filename):
+    """
+
+    :param runs_dir:
+    :param img_dir:
+    :param filename:
+    """
+    dataset_states, splits = load_dataset(runs_dir, load_splits=True)
+    step_states = dataset_states.where(dataset_states.step == 0, drop=True)
+
+    plt.figure(figsize=(7.8, 4.8), constrained_layout=True)
+
+    for i, name in enumerate(splits.split_names):
+        split_states = step_states.where(splits == i)
+        x, y = unpack(split_states.initial_position, 'axis')
+
+        plt.plot(x, y, 'o', alpha=0.4, label=name)
+
+    ax = plt.gca()
+
+    draw_docking_station(ax)
+
+    goal_position = step_states.goal_position[0]
+    goal_angle = step_states.goal_angle[0]
+
+    draw_marxbot(ax, goal_position, goal_angle, label='goal position')
+
+    plt.xlim(-250, 250)
+    plt.ylim(-250, 250)
+    plt.axis('equal')
+    plt.legend()
+
+    plt.xlabel('x axis', fontsize=11)
+    plt.ylabel('y axis', fontsize=11)
+
+    save_visualisation(filename, img_dir)
+
+
 def plot_positions_heatmap(runs_dir, img_dir, filename):
     dataset_states = load_dataset(runs_dir)
 
