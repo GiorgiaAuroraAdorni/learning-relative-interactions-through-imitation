@@ -453,20 +453,14 @@ def plot_losses(train_loss, valid_loss, img_dir, filename, scale=None):
     :param scale:
     """
     x = np.arange(0, len(train_loss), dtype=int)
-    x_ticks = np.arange(0, len(train_loss) + 1, 10, dtype=int)
 
     plt.figure(figsize=(7.8, 4.8), constrained_layout=True)
     plt.xlabel('epoch', fontsize=11)
     plt.ylabel('loss', fontsize=11)
 
-    plt.xticks(x_ticks)
-
     plt.plot(x, train_loss, label='train')
     plt.plot(x, valid_loss, label='validation')
-    if scale is not None:
-        plt.ylim(0, scale)
-
-    plt.yscale('log')
+    plt.ylim(0, 70)
     plt.legend()
 
     save_visualisation(filename, img_dir)
