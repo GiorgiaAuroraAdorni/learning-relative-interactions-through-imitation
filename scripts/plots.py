@@ -395,13 +395,16 @@ def plot_initial_positions(runs_dir, img_dir, filename):
     :param filename:
     :return:
     """
-    dataset_states = load_dataset(runs_dir)
+    dataset_states, splits = load_dataset(runs_dir, load_splits=True)
     step_states = dataset_states.where(dataset_states.step == 0, drop=True)
-    x, y = unpack(step_states.initial_position, 'axis')
 
     plt.figure(figsize=(7.8, 4.8), constrained_layout=True)
 
-    plt.scatter(x, y, alpha=0.2, label='initial positions')
+    for i, name in enumerate(splits.split_names):
+        split_states = step_states.where(splits == i)
+        x, y = unpack(split_states.initial_position, 'axis')
+        
+        plt.plot(x, y, 'o', alpha=0.4, label=name)
 
     ax = plt.gca()
 
