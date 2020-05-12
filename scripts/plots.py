@@ -198,7 +198,7 @@ def draw_docking_station(ax):
         (0, -0.5, 1), (1.5, -0.5, 1), (1.5, -1, 1), (-0.5, -1, 1)
     ])
 
-    obj_tform = Transform.scale(20)
+    obj_tform = Transform.translate(-7, 0) @ Transform.scale(20)
     obj_points = obj_points.transformed(obj_tform).to_euclidean().T
 
     ax.add_patch(plt.Polygon(
