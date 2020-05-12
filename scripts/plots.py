@@ -27,7 +27,7 @@ def generate_dataset_plots(run_dir, img_dir, video_dir):
     plot_trajectory(run_dir, img_dir, 'robot-trajectory')
     plot_trajectories(run_dir, img_dir, '10-robot-trajectories')
     plot_sensors(run_dir, video_dir, 'sensors-control-response-over-time')
-    plot_initial_positions(run_dir, img_dir, 'initial-positions')
+    plot_positions_scatter(run_dir, img_dir, 'initial-final-positions')
     plot_positions_heatmap(run_dir, img_dir, 'positions-heatmap')
 
 
@@ -78,7 +78,7 @@ def plot_distance_from_goal(runs_dir, img_dir, filename):
 
     time_steps = np.arange(dataset_states.step.max() + 1)
 
-    fig, axes = plt.subplots(nrows=2, figsize=(6.8, 8.4), constrained_layout=True, sharex=True)
+    fig, axes = plt.subplots(nrows=2, figsize=(6.8, 8.4), constrained_layout=True, sharex='col')
     plt.xlabel('timestep', fontsize=11)
 
     # Plot position distance from goal
@@ -357,52 +357,54 @@ def plot_sensors(runs_dir, video_dir, filename):
     env.save(video_path, dpi=300)
 
 
-def plot_initial_positions(runs_dir, img_dir, filename):
+def plot_positions_scatter(runs_dir, img_dir, filename):
     """
 
     :param runs_dir:
     :param img_dir:
     :param filename:
-    :return:
     """
     dataset_states = load_dataset(runs_dir)
+    dataset_states = dataset_states[['goal_position', 'goal_angle', 'position', 'initial_position', 'initial_angle']]
+
+    fig, axes = plt.subplots(ncols=2, figsize=(9.8, 4.8), constrained_layout=True, sharey='row')
+    plt.ylim(-220, 220)
+
+    # initial positions
     step_states = dataset_states.where(dataset_states.step == 0, drop=True)
     x, y = unpack(step_states.initial_position, 'axis')
+    label = 'initial positions'
 
-    plt.figure(figsize=(7.8, 4.8), constrained_layout=True)
-
-    plt.scatter(x, y, alpha=0.2, label='initial positions')
-
-    ax = plt.gca()
-
-    draw_docking_station(ax)
-
-    # TODO: extract method
-    radius = 8.5
     goal_position = step_states.goal_position[0]
     goal_angle = step_states.goal_angle[0]
 
-    points = Point.from_list([
-        Point.ORIGIN,
-        [1, -3, 1], [1, 3, 1], [6, 0, 1]
-    ])
+    axes[0].scatter(x, y, alpha=0.2, label=label)
+    axes[0].set_ylabel('y axis', fontsize=11)
+    draw_docking_station(axes[0])
+    draw_marxbot(axes[0], goal_position, goal_angle, label='goal position')
 
-    goal_tform = Transform.pose_transform(goal_position, goal_angle)
-    goal_points = points.transformed(goal_tform).to_euclidean().T
+    axes[0].set_xlim(-250, 250)
+    axes[0].set_aspect('equal')
 
-    ax.add_patch(plt.Circle(goal_points[0], radius,
-                            facecolor=colors.to_rgba('tab:orange', alpha=0.5),
-                            edgecolor='tab:orange', linewidth=1.5,
-                            label='goal position'))
-    ax.add_patch(plt.Polygon(goal_points[1:],
-                             facecolor=colors.to_rgba('tab:orange', alpha=0),
-                             edgecolor='tab:orange'))
+    axes[0].set_xlabel('x axis', fontsize=11)
+    axes[0].legend()
 
-    plt.axis('equal')
-    plt.legend()
+    # final positions
+    step_states = dataset_states.groupby("run").map(lambda x: x.isel(sample=[-1]))
+    x, y = unpack(step_states.position, 'axis')
 
-    plt.xlabel('x axis', fontsize=11)
-    plt.ylabel('y axis', fontsize=11)
+    goal_position = step_states.goal_position[0]
+    goal_angle = step_states.goal_angle[0]
+
+    axes[1].scatter(x, y, alpha=0.2, label='final positions')
+    draw_docking_station(axes[1])
+    draw_marxbot(axes[1], goal_position, goal_angle, label='goal position')
+
+    axes[1].set_xlim(-250, 250)
+    axes[1].set_aspect('equal')
+
+    axes[1].set_xlabel('x axis', fontsize=11)
+    axes[1].legend()
 
     save_visualisation(filename, img_dir)
 
