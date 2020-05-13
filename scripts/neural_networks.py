@@ -16,6 +16,9 @@ from dataset import split_datasets
 
 class ConvNet(nn.Module):
     def __init__(self):
+        """
+
+        """
         super().__init__()
 
         # Using BatchNorm somewhat improperly as an input normalization step.
@@ -76,6 +79,12 @@ class NetMetrics:
         self.t = t
 
     def add_graph(self, model, model_device, train_loader):
+        """
+
+        :param model:
+        :param model_device:
+        :param train_loader:
+        """
         # Extract the inputs of the first batch from the DataLoader, since PyTorch
         # needs an input tensor to correctly trace the model.
         inputs, _ = next(iter(train_loader))
@@ -116,22 +125,44 @@ class StreamingMean:
     end, since here the partial mean is always kept at the same scale as the samples.
     """
     def __init__(self):
+        """"""
+
         self.reset()
 
     def update(self, sample, weight=1.0):
+        """
+
+        :param sample:
+        :param weight:
+        :return:
+        """
         self._weights += weight
         self._mean += weight / self._weights * (sample - self._mean)
 
     def reset(self):
+        """
+
+        :return:
+        """
         self._weights = 0.0
         self._mean = 0.0
 
     @property
     def mean(self):
+        """
+
+        :return:
+        """
         return self._mean
 
 
 def to_torch_loader(dataset, **kwargs):
+    """
+
+    :param dataset:
+    :param kwargs:
+    :return:
+    """
     scanner_image = dataset.scanner_image
     scanner_distances = dataset.scanner_distances
     wheel_target_speeds = dataset.wheel_target_speeds
@@ -156,11 +187,22 @@ def to_torch_loader(dataset, **kwargs):
 
 
 def save_network(model_dir, net):
+    """
+
+    :param model_dir:
+    :param net:
+    """
     model_path = os.path.join(model_dir, 'model.pt')
     torch.save(net, model_path)
 
 
 def load_network(model_dir, device='cpu'):
+    """
+
+    :param model_dir:
+    :param device:
+    :return net:
+    """
     model_path = os.path.join(model_dir, 'model.pt')
     net = torch.load(model_path, map_location=device)
 
@@ -247,12 +289,20 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=100
     best_epoch = stopping.restore_best_net(net)
     print("Restoring best network from epoch %d." % best_epoch)
 
+    #
+
     save_network(model_dir, net)
     metrics.finalize()
 
 
 class NetValidator:
     def __init__(self, valid_loader: data.DataLoader, criterion, device):
+        """
+
+        :param valid_loader:
+        :param criterion:
+        :param device:
+        """
         self.criterion = criterion
         self.valid_loader = valid_loader
         self.device = device
@@ -260,6 +310,11 @@ class NetValidator:
         self.valid_loss = StreamingMean()
 
     def validate(self, net):
+        """
+
+        :param net:
+        :return:
+        """
         with torch.no_grad():
             self.valid_loss.reset()
 
@@ -281,6 +336,10 @@ class EarlyStopping:
     row, interrupt the training.
     """
     def __init__(self, patience=20):
+        """
+
+        :param patience:
+        """
         self.patience = patience
 
         self.best_loss = np.inf
@@ -288,6 +347,13 @@ class EarlyStopping:
         self.best_net = None
 
     def should_stop(self, net, loss, epoch):
+        """
+
+        :param net:
+        :param loss:
+        :param epoch:
+        :return:
+        """
         if loss <= self.best_loss:
             self.best_loss = loss
             self.best_epoch = epoch
@@ -299,6 +365,11 @@ class EarlyStopping:
         return should_stop, patience_lost
 
     def restore_best_net(self, net):
+        """
+
+        :param net:
+        :return:
+        """
         net.load_state_dict(self.best_net)
 
         return self.best_epoch
