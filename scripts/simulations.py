@@ -38,13 +38,13 @@ class GenerateSimulationData:
         world, marxbot, d_object = cls.setup(controller_factory)
 
         # Generate random polar coordinates to define the area in which the
-        # marXbot can spawn, in particular theta ∈ [0, 2π] and r ∈ [d_object.radius * 2, max_range * 1.2]
+        # marXbot can spawn, in particular theta ∈ [0, 2π] and r ∈ [0, max_range * 1.2]
         max_range = 150  # corresponds to the proximity sensors maximal range
 
         # Compensate for the higher density of points at smaller values of r. This
         # is accomplished by uniformly sampling the square of r.
         # Source: https://stats.stackexchange.com/a/120535
-        rmin, rmax = np.array([d_object.radius * 2, max_range * 1.2]) ** 2
+        rmin, rmax = np.array([0, max_range * 1.2]) ** 2
         r = np.sqrt(np.random.uniform(rmin, rmax, n_simulations))
 
         # The angle is chosen randomly in all its possible realisations
