@@ -78,14 +78,14 @@ def plot_distance_from_goal(runs_dir, img_dir, filename):
 
     time_steps = np.arange(dataset_states.step.max() + 1)
 
-    fig, axes = plt.subplots(nrows=2, figsize=(6.8, 8.4), constrained_layout=True, sharex='col')
-    plt.xlabel('timestep', fontsize=11)
+    fig, axes = plt.subplots(ncols=2, figsize=(10.8, 4.8), constrained_layout=True)
 
     # Plot position distance from goal
     goal_p_dist_by_step = dataset_states.goal_position_distance.groupby('step')
     p_q1, p_q2, p_q3, p_q4, p_median = unpack(goal_p_dist_by_step.quantile([0.25, 0.75, 0.10, 0.90, 0.5]), 'quantile')
 
     axes[0].set_ylabel('euclidean distance', fontsize=11)
+    axes[0].set_xlabel('timestep', fontsize=11)
     axes[0].grid()
 
     ln, = axes[0].plot(time_steps, p_median, label='median')
@@ -100,6 +100,7 @@ def plot_distance_from_goal(runs_dir, img_dir, filename):
     a_q1, a_q2, a_q3, a_q4, a_median = unpack(goal_a_dist_by_step.quantile([0.25, 0.75, 0.10, 0.90, 0.5]), 'quantile')
 
     axes[1].set_ylabel('angle difference', fontsize=11)
+    axes[1].set_xlabel('timestep', fontsize=11)
     axes[1].grid()
 
     ln, = axes[1].plot(time_steps, a_median, label='median')
@@ -233,7 +234,7 @@ def draw_marxbot(ax, position, angle, label=None, radius=8.5):
         colour = 'tab:orange'
     else:
         colour = 'tab:blue'
-
+    # FIXME perche 0 e 1: ??
     ax.add_patch(plt.Circle(points[0], radius,
                             facecolor=colors.to_rgba(colour, alpha=0.5),
                             edgecolor=colour, linewidth=1.5,
@@ -351,7 +352,7 @@ def plot_sensors(runs_dir, video_dir, filename):
             viz.ControlSignalsViz(marxbot)
         ], suptitle='Run 0')
     ], sources=[marxbot])
-    env.show(figsize=(9, 4))
+    env.show(figsize=(9.8, 4.8))
 
     video_path = os.path.join(video_dir, '%s.mp4' % filename)
     env.save(video_path, dpi=300)
@@ -378,7 +379,8 @@ def plot_positions_scatter(runs_dir, img_dir, filename):
     goal_position = step_states.goal_position[0]
     goal_angle = step_states.goal_angle[0]
 
-    axes[0].scatter(x, y, alpha=0.2, label=label)
+    radius = 8.5
+    axes[0].scatter(x, y, alpha=0.1, label=label, s=(radius)**2)
     axes[0].set_ylabel('y axis', fontsize=11)
     draw_docking_station(axes[0])
     draw_marxbot(axes[0], goal_position, goal_angle, label='goal position')
@@ -396,7 +398,7 @@ def plot_positions_scatter(runs_dir, img_dir, filename):
     goal_position = step_states.goal_position[0]
     goal_angle = step_states.goal_angle[0]
 
-    axes[1].scatter(x, y, alpha=0.2, label='final positions')
+    axes[1].scatter(x, y, alpha=0.1, label='final positions', s=(radius)**2)
     draw_docking_station(axes[1])
     draw_marxbot(axes[1], goal_position, goal_angle, label='goal position')
 
@@ -421,11 +423,12 @@ def plot_initial_positions(runs_dir, img_dir, filename):
 
     plt.figure(figsize=(7.8, 4.8), constrained_layout=True)
 
+    radius = 8.5
     for i, name in enumerate(splits.split_names):
         split_states = step_states.where(splits == i)
         x, y = unpack(split_states.initial_position, 'axis')
-
-        plt.plot(x, y, 'o', alpha=0.4, label=name)
+        # FIXME why radius * 1.5?
+        plt.plot(x, y, 'o', alpha=0.1, label=name, markersize=radius*1.5)
 
     ax = plt.gca()
 
@@ -436,9 +439,9 @@ def plot_initial_positions(runs_dir, img_dir, filename):
 
     draw_marxbot(ax, goal_position, goal_angle, label='goal position')
 
-    plt.xlim(-250, 250)
-    plt.ylim(-250, 250)
-    plt.axis('equal')
+    ax.set_ylim(-220, 220)
+    ax.set_xlim(-250, 250)
+    ax.set_aspect('equal')
     plt.legend()
 
     plt.xlabel('x axis', fontsize=11)
@@ -517,17 +520,15 @@ def plot_target_distribution(y_g, y_p, img_dir, filename):
     left_g, right_g = np.split(y_g, 2, axis=1)
     left_p, right_p = np.split(y_p, 2, axis=1)
 
-    fig, axes = plt.subplots(nrows=2, figsize=(6.8, 8.4), constrained_layout=True)
+    fig, axes = plt.subplots(ncols=2, figsize=(10.8, 4.8), constrained_layout=True)
 
     plt.yscale('log')
 
-    axes[0].set_xlabel('left', fontsize=11)
     left = np.array([left_g, left_p]).reshape(-1, 2)
     axes[0].hist(left, bins=50, label=labels)
     axes[0].legend()
     axes[0].set_title('Left wheel target speed', weight='bold', fontsize=12)
 
-    axes[1].set_xlabel('right', fontsize=11)
     right = np.array([right_g, right_p]).reshape(-1, 2)
     axes[1].hist(right, bins=50, label=labels)
     axes[1].legend()
@@ -546,11 +547,11 @@ def plot_regressor(y_g, y_p, img_dir, filename):
     lin_vel_g, ang_vel_g = to_robot_velocities(y_g[:, 0], y_g[:, 1])
     lin_vel_p, ang_vel_p = to_robot_velocities(y_p[:, 0], y_p[:, 1])
 
-    fig, axes = plt.subplots(nrows=2, figsize=(6.8, 8.4), constrained_layout=True)
+    fig, axes = plt.subplots(ncols=2, figsize=(10.8, 4.8), constrained_layout=True)
     for a in axes:
         a.set_xlabel('groundtruth', fontsize=11)
         a.set_ylabel('prediction', fontsize=11)
-        a.axis('equal')
+        a.set_aspect('equal')
 
     lr_lin = LinearRegression()
     lr_lin.fit(np.reshape(lin_vel_g, [-1, 1]), np.reshape(lin_vel_p, [-1, 1]))

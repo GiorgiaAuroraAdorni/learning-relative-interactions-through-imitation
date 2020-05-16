@@ -12,7 +12,7 @@ class Controller(ABC):
         self.max_vel = 30
 
         self.distance_tol = 0.1
-        self.angle_tolerance = 0.005
+        self.angle_tol = 0.005
 
     def perform_control(self, state, dt):
         """
@@ -31,7 +31,7 @@ class Controller(ABC):
         distance_error = euclidean_distance(state.goal_position, state.position)
         angle_error = angle_difference(state.goal_angle, state.angle)
 
-        goal_reached = (distance_error < self.distance_tol and angle_error < self.angle_tolerance)
+        goal_reached = (distance_error < self.distance_tol and angle_error < self.angle_tol)
 
         return velocities, goal_reached
 

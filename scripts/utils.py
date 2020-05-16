@@ -10,14 +10,14 @@ def check_dir(directory):
     os.makedirs(directory, exist_ok=True)
 
 
-def directory_for_dataset(args, controller):
+def directory_for_dataset(dataset, controller):
     """
 
-    :param args:
+    :param dataset:
     :param controller:
     :return run_dir, run_img_dir, run_video_dir:
     """
-    run_dir = os.path.join(args.dataset_folder, controller)
+    run_dir = os.path.join(dataset, controller)
 
     run_img_dir = os.path.join(run_dir, 'images')
     check_dir(run_img_dir)
