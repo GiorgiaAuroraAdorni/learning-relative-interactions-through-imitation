@@ -51,10 +51,11 @@ if __name__ == '__main__':
     else:
         controllers = [args.controller]
 
-    if args.controller == 'all':
+    if args.dataset == 'all':
         datasets = [f.path for f in os.scandir(args.dataset_folder) if f.is_dir()]
     else:
-        datasets = [args.dataset_folder]
+        dataset = os.path.join(args.dataset_folder, args.dataset)
+        datasets = [dataset]
 
     for d in datasets:
         for c in controllers:

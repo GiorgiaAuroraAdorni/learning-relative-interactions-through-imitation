@@ -509,14 +509,13 @@ def plot_positions_heatmap(runs_dir, img_dir, filename):
     save_visualisation(filename, img_dir)
 
 
-def plot_losses(train_loss, valid_loss, img_dir, filename, scale=None):
+def plot_losses(train_loss, valid_loss, img_dir, filename):
     """
 
     :param train_loss: the training losses
     :param valid_loss: the testing losses
     :param img_dir: directory for the output image
     :param filename:
-    :param scale:
     """
     x = np.arange(0, len(train_loss), dtype=int)
 
@@ -526,7 +525,7 @@ def plot_losses(train_loss, valid_loss, img_dir, filename, scale=None):
 
     plt.plot(x, train_loss, label='train')
     plt.plot(x, valid_loss, label='validation')
-    plt.ylim(0, 70)
+    plt.ylim(0, max(min(train_loss), min(valid_loss))*10)
     plt.legend()
 
     save_visualisation(filename, img_dir)
@@ -562,6 +561,85 @@ def plot_target_distribution(y_g, y_p, img_dir, filename):
     save_visualisation(filename, img_dir)
 
 
+def plot_wheel_speed_over_time(y_g, y_p, img_dir, filename):
+    """
+    :param y_g
+    :param y_p
+    :param img_dir:
+    :param filename
+    """
+    labels = ['groundtruth', 'prediction']
+
+    # extract 1000 subsamples
+    left_g, right_g = np.split(y_g[:1000, ], 2, axis=1)
+    left_p, right_p = np.split(y_p[:1000, ], 2, axis=1)
+
+    fig, axes = plt.subplots(ncols=2, figsize=(10.8, 4.8), constrained_layout=True)
+
+    left = np.array([left_g, left_p]).reshape(-1, 2)
+    right = np.array([right_g, right_p]).reshape(-1, 2)
+
+    for idx, label in enumerate(labels):
+        axes[0].plot(left[:, idx], label=label)
+        axes[1].plot(right[:, idx], label=label)
+
+    y_min = min(left.min(), right.min())
+    y_max = max(left.max(), right.max())
+
+    axes[0].set_ylim(y_min - 10, y_max + 10)
+    axes[0].legend()
+    axes[0].set_title('Left wheel target speed over time', weight='bold', fontsize=12)
+    axes[0].set_xlabel('sample')
+    axes[0].set_ylabel('left wheel speed [cm/s]')
+
+    axes[1].set_ylim(y_min - 10, y_max + 10)
+    axes[1].legend()
+    axes[1].set_title('Right wheel target speed over time', weight='bold', fontsize=12)
+    axes[1].set_xlabel('sample')
+    axes[1].set_ylabel('right wheel speed [cm/s]')
+
+    save_visualisation(filename, img_dir)
+
+
+def plot_velocities_over_time(y_g, y_p, img_dir, filename):
+    """
+
+    :param y_g:
+    :param y_p:
+    :param img_dir:
+    :param filename:
+    :return:
+    """
+    labels = ['groundtruth', 'prediction']
+
+    # extract 1000 subsamples
+    lin_vel_g, ang_vel_g = to_robot_velocities(y_g[:1000, 0], y_g[:1000, 1])
+    lin_vel_p, ang_vel_p = to_robot_velocities(y_p[:1000, 0], y_p[:1000, 1])
+
+    fig, axes = plt.subplots(ncols=2, figsize=(10.8, 4.8), constrained_layout=True)
+
+    lin = np.array([lin_vel_g, lin_vel_p]).reshape(-1, 2)
+    ang = np.array([ang_vel_g, ang_vel_p]).reshape(-1, 2)
+
+    for idx, label in enumerate(labels):
+        axes[0].plot(lin[:, idx], label=label)
+        axes[1].plot(ang[:, idx], label=label)
+
+    axes[0].set_ylim(lin.min() - 10, lin.max() + 10)
+    axes[0].legend()
+    axes[0].set_title('Linear velocity over time', weight='bold', fontsize=12)
+    axes[0].set_xlabel('sample')
+    axes[0].set_ylabel('linear velocity [cm/s]')
+
+    axes[1].set_ylim(ang.min() - 1, ang.max() + 1)
+    axes[1].legend()
+    axes[1].set_title('Angular velocity over time', weight='bold', fontsize=12)
+    axes[1].set_xlabel('sample')
+    axes[1].set_ylabel('angular velocity [rad/s]')
+
+    save_visualisation(filename, img_dir)
+
+
 def plot_regressor(y_g, y_p, img_dir, filename):
     """
     :param y_g:
@@ -576,7 +654,7 @@ def plot_regressor(y_g, y_p, img_dir, filename):
     for a in axes:
         a.set_xlabel('groundtruth', fontsize=11)
         a.set_ylabel('prediction', fontsize=11)
-        a.set_aspect('equal')
+        a.set_aspect('equal', adjustable='datalim')
 
     lr_lin = LinearRegression()
     lr_lin.fit(np.reshape(lin_vel_g, [-1, 1]), np.reshape(lin_vel_p, [-1, 1]))
