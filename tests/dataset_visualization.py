@@ -4,10 +4,13 @@ import numpy as np
 
 import viz
 from dataset import load_dataset
+from utils import check_dir
 
-controller = "omniscient"
+dataset_id = "omniscient"
 datasets_dir = "datasets/"
-runs_dir = os.path.join(datasets_dir, controller)
+runs_dir = os.path.join(datasets_dir, dataset_id)
+videos_dir = os.path.join(runs_dir, 'videos')
+check_dir(videos_dir)
 
 # Load the dataset
 dataset = load_dataset(runs_dir)
@@ -36,9 +39,9 @@ for _ in range(n_runs):
             viz.TrajectoryViz(marxbot),
             viz.LaserScannerViz(marxbot),
             viz.ControlSignalsViz(marxbot)
-        ], suptitle="%s: run %d" % (controller, run_id))
+        ], suptitle="%s: run %d" % (dataset_id, run_id))
     ], sources=[marxbot])
     env.show(figsize=(14, 4))
 
-    video_path = os.path.join(runs_dir, 'run-%d.mp4' % run_id)
+    video_path = os.path.join(videos_dir, 'run-%d.mp4' % run_id)
     env.save(video_path, dpi=300)
