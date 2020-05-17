@@ -234,7 +234,7 @@ def draw_marxbot(ax, position, angle, label=None, radius=8.5):
         colour = 'tab:orange'
     else:
         colour = 'tab:blue'
-    # FIXME perche 0 e 1: ??
+
     ax.add_patch(plt.Circle(points[0], radius,
                             facecolor=colors.to_rgba(colour, alpha=0.5),
                             edgecolor=colour, linewidth=1.5,
@@ -380,7 +380,8 @@ def plot_positions_scatter(runs_dir, img_dir, filename):
     goal_angle = step_states.goal_angle[0]
 
     radius = 8.5
-    axes[0].scatter(x, y, alpha=0.1, label=label, s=(radius)**2)
+    axes[0].scatter(x, y, alpha=0.1, label=label, marker='o', s=(radius*np.pi)**2/5,
+                    facecolor=colors.to_rgba('tab:blue', alpha=0.1), edgecolor='none')
     axes[0].set_ylabel('y axis', fontsize=11)
     draw_docking_station(axes[0])
     draw_marxbot(axes[0], goal_position, goal_angle, label='goal position')
@@ -398,7 +399,8 @@ def plot_positions_scatter(runs_dir, img_dir, filename):
     goal_position = step_states.goal_position[0]
     goal_angle = step_states.goal_angle[0]
 
-    axes[1].scatter(x, y, alpha=0.1, label='final positions', s=(radius)**2)
+    axes[1].scatter(x, y, label='final positions', marker='o', s=(radius*np.pi)**2/5,
+                    facecolor=colors.to_rgba('tab:blue', alpha=0.1), edgecolor='none')
     draw_docking_station(axes[1])
     draw_marxbot(axes[1], goal_position, goal_angle, label='goal position')
 
@@ -427,8 +429,7 @@ def plot_initial_positions(runs_dir, img_dir, filename):
     for i, name in enumerate(splits.split_names):
         split_states = step_states.where(splits == i)
         x, y = unpack(split_states.initial_position, 'axis')
-        # FIXME why radius * 1.5?
-        plt.plot(x, y, 'o', alpha=0.1, label=name, markersize=radius*1.5)
+        plt.plot(x, y, 'o', label=name, alpha=0.1, markersize=(radius * np.pi)/2, markeredgecolor='none')
 
     ax = plt.gca()
 
