@@ -376,7 +376,7 @@ def plot_sensors(runs_dir, video_dir, filename):
             viz.ControlSignalsViz(marxbot)
         ], suptitle='Run 0')
     ], sources=[marxbot])
-    env.show(figsize=(13.8, 4.8))
+    env.show(figsize=(14, 4))
 
     video_path = os.path.join(video_dir, '%s.mp4' % filename)
     env.save(video_path, dpi=300)
