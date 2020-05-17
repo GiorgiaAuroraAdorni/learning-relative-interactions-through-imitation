@@ -15,13 +15,23 @@ controller = controllers.OmniscientController()
 marxbot = MyMarxbot("marxbot", controller)
 marxbot.position = (0, 0)
 marxbot.angle = 0
-marxbot.goal_position = (0, 100)
-marxbot.goal_angle = np.pi/2
+marxbot.goal_position = (38, 0)
+marxbot.goal_angle = np.pi
 world.add_object(marxbot)
 
-cube = pyenki.RectangularObject(10, 10, height=20, mass=-1, color=pyenki.Color.red)
-cube.position = (0, 125)
-world.add_object(cube)
+size = 20.0
+height = 40.0
+
+d_object = pyenki.CompositeObject(
+    [([(0, 1 * size), (0, 0.5 * size), (2 * size, 0.5 * size), (2 * size, 1 * size)], height),
+     ([(0, -0.5 * size), (0, -1 * size), (2 * size, -1 * size), (2 * size, -0.5 * size)], height),
+     ([(0, 0.5 * size), (0, -0.5 * size), (0.5 * size, -0.5 * size), (0.5 * size, 0.5 * size)], height)],
+    -1, pyenki.Color(0, 0.5, 0.5))
+world.add_object(d_object)
+
+# Decide the pose of the docking_station
+d_object.position = (0, 0)
+d_object.angle = 0
 
 ## Start the application
 app = QApplication.instance()
@@ -44,12 +54,13 @@ view.show()
 
 # Create the visualizations
 env = viz.FuncAnimationEnv([
-    viz.GridLayout((1, 2), [
+    viz.GridLayout((1, 3), [
+        viz.TrajectoryViz(marxbot),
         viz.LaserScannerViz(marxbot),
         viz.ControlSignalsViz(marxbot)
     ], suptitle='Smooth Kinematics Demo')
 ], refresh_interval=0.1)
-env.show(figsize=(9, 4))
+env.show(figsize=(14, 4))
 
 # Start the event loop
 pyenki.execApp(view)

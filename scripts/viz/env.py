@@ -108,11 +108,16 @@ class FuncAnimationEnv(Env):
         self.anim: Optional[FuncAnimation] = None
 
     def show(self, **fig_kw):
-        self.fig = plt.figure(constrained_layout=True, **fig_kw)
+        self.fig: plt.Figure = plt.figure(constrained_layout=True, **fig_kw)
 
         for viz in self.vizs:
             viz.show(self)
 
+        # Ensure there are at least 0.20 inches between axes in the figure.
+        self.fig.set_constrained_layout_pads(w_pad=0.20)
+
+        # Compute the layout, then disable constrained_layout to improve
+        # real-time performance.
         self.fig.execute_constrained_layout()
         self.fig.set_constrained_layout(False)
 

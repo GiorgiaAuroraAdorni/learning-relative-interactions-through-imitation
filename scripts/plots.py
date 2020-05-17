@@ -222,26 +222,49 @@ def draw_marxbot(ax, position, angle, label=None, radius=8.5):
     :param radius:
     :return:
     """
-    points = Point.from_list([
-        Point.ORIGIN,
-        [1, -3, 1], [1, 3, 1], [6, 0, 1]
-    ])
 
-    tform = Transform.pose_transform(position, angle)
-    points = points.transformed(tform).to_euclidean().T
+    class MarxbotPatch:
+        _points = Point.from_list([
+            Point.ORIGIN,
+            [1, -3, 1], [6, 0, 1], [1, 3, 1]
+        ])
 
-    if label == 'goal position':
-        colour = 'tab:orange'
-    else:
-        colour = 'tab:blue'
+        def __init__(self, ax):
+            points = self._points.to_euclidean().T
 
-    ax.add_patch(plt.Circle(points[0], radius,
-                            facecolor=colors.to_rgba(colour, alpha=0.5),
-                            edgecolor=colour, linewidth=1.5,
-                            label=label))
-    ax.add_patch(plt.Polygon(points[1:],
-                             facecolor=colors.to_rgba(colour, alpha=0),
-                             edgecolor=colour))
+            if label == 'goal position':
+                colour = 'tab:orange'
+            else:
+                colour = 'tab:blue'
+
+            self.circle = plt.Circle(
+                points[0], radius,
+                facecolor=colors.to_rgba(colour, alpha=0.5),
+                edgecolor=colour, linewidth=1.5,
+                label=label
+            )
+            self.arrow = plt.Polygon(
+                points[1:],
+                facecolor='none',
+                edgecolor=colour
+            )
+
+            ax.add_patch(self.circle)
+            ax.add_patch(self.arrow)
+
+        def update(self, position, angle):
+            tform = Transform.pose_transform(position, angle)
+            points = self._points.transformed(tform).to_euclidean().T
+
+            self.circle.center = points[0]
+            self.arrow.xy = points[1:]
+
+    patch = MarxbotPatch(ax)
+
+    if position is not None and angle is not None:
+        patch.update(position, angle)
+
+    return patch
 
 
 def plot_trajectory(runs_dir, img_dir, filename, run_id=0):
@@ -347,12 +370,13 @@ def plot_sensors(runs_dir, video_dir, filename):
 
     # Create the visualizations
     env = viz.FuncAnimationEnv([
-        viz.GridLayout((1, 2), [
+        viz.GridLayout((1, 3), [
+            viz.TrajectoryViz(marxbot),
             viz.LaserScannerViz(marxbot),
             viz.ControlSignalsViz(marxbot)
         ], suptitle='Run 0')
     ], sources=[marxbot])
-    env.show(figsize=(9.8, 4.8))
+    env.show(figsize=(13.8, 4.8))
 
     video_path = os.path.join(video_dir, '%s.mp4' % filename)
     env.save(video_path, dpi=300)

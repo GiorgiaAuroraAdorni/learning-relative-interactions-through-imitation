@@ -48,7 +48,7 @@ class LaserScannerViz(Viz):
 
         transform = self.ax.transProjectionAffine + self.ax.transAxes
         marxbot = patches.Circle((0, 0), radius=self.marxbot_radius,
-                                 edgecolor='b', facecolor=colors.to_rgba("b", alpha=0.6),
+                                 edgecolor='tab:blue', facecolor=colors.to_rgba('tab:blue', alpha=0.5),
                                  transform=transform, zorder=3)
         self.ax.add_patch(marxbot)
 
