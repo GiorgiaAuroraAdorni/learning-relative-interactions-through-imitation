@@ -335,16 +335,19 @@ class EarlyStopping:
     loss seen so far. If validation loss doesn't improve for `patience` epochs in a
     row, interrupt the training.
     """
-    def __init__(self, patience=20):
+    def __init__(self, patience=20, rel_tolerance=1.05):
         """
 
         :param patience:
         """
         self.patience = patience
+        self.rel_tolerance = rel_tolerance
 
         self.best_loss = np.inf
         self.best_epoch = None
         self.best_net = None
+
+        self.patience_lost = 0
 
     def should_stop(self, net, loss, epoch):
         """
@@ -359,10 +362,14 @@ class EarlyStopping:
             self.best_epoch = epoch
             self.best_net = net.state_dict()
 
-        patience_lost = epoch - self.best_epoch
-        should_stop = (patience_lost == self.patience)
+        if loss <= self.rel_tolerance * self.best_loss:
+            self.patience_lost = 0
+        else:
+            self.patience_lost += 1
 
-        return should_stop, patience_lost
+        should_stop = (self.patience_lost == self.patience)
+
+        return should_stop, self.patience_lost
 
     def restore_best_net(self, net):
         """
