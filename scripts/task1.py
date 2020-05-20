@@ -14,6 +14,8 @@ def parse_args():
                         help='number of runs for each simulation (default: 1000)')
     parser.add_argument('--generate-dataset', action="store_true",
                         help='generate the dataset containing the n_simulations (default: False)')
+    parser.add_argument('--goal-object', default="station", choices=['station', 'coloured_station'],
+                        help='choose the type of goal object between station and coloured_station (default: station)')
     parser.add_argument('--plots-dataset', action="store_true",
                         help='generate the plots of regarding the dataset (default: False)')
     parser.add_argument('--generate-splits', action="store_true",
@@ -66,8 +68,8 @@ if __name__ == '__main__':
                 from simulations import GenerateSimulationData as sim
 
                 print('Generating %s simulations for %s %s controller…' % (args.n_simulations, d, c))
-                dataset = sim.generate_simulation(n_simulations=args.n_simulations,
-                                                  controller=c, args=args,
+                dataset = sim.generate_simulation(n_simulations=args.n_simulations, controller=c,
+                                                  goal_object=args.goal_object, gui=args.gui,
                                                   model_dir=model_dir)
 
                 print('Saving dataset for %s %s controller…' % (d, c))

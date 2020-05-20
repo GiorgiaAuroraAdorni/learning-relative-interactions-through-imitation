@@ -17,12 +17,13 @@ class GenerateSimulationData:
     LEARNED_CONTROLLER = r"^learned"
 
     @classmethod
-    def generate_simulation(cls, n_simulations, controller, args, model_dir):
+    def generate_simulation(cls, n_simulations, controller, goal_object, gui, model_dir):
         """
 
         :param n_simulations:
         :param controller:
-        :param args:
+        :param goal_object
+        :param gui:
         :param model_dir
         """
         if controller == cls.OMNISCIENT_CONTROLLER:
@@ -35,7 +36,7 @@ class GenerateSimulationData:
         else:
             raise ValueError("Invalid value for controller")
 
-        world, marxbot, d_object = cls.setup(controller_factory)
+        world, marxbot, d_object = cls.setup(controller_factory, goal_object)
 
         # Generate random polar coordinates to define the area in which the
         # marXbot can spawn, in particular theta ∈ [0, 2π] and r ∈ [0, max_range * 1.2]
@@ -53,13 +54,13 @@ class GenerateSimulationData:
 
         marxbot_rel_poses = np.array([r, theta, angle]).T.reshape(-1, 3)
 
-        builder = cls.init_dataset()
+        builder = cls.init_dataset(goal_object)
         for n in tqdm(range(n_simulations)):
             try:
                 template = builder.create_template(run=n)
 
                 cls.init_positions(marxbot, d_object, marxbot_rel_poses[n])
-                cls.run(marxbot, world, builder, template, args.gui)
+                cls.run(marxbot, world, builder, template, gui)
             except Exception as e:
                 print('ERROR: ', e)
                 import traceback
@@ -70,12 +71,38 @@ class GenerateSimulationData:
         return dataset
 
     @classmethod
-    def setup(cls, controller_factory):
+    def setup_docking_station(cls, size, height, goal_object):
+
+        if goal_object == 'coloured_station':
+            face_colours = [pyenki.Color(0.839, 0.153, 0.157),
+                            pyenki.Color(1.000, 0.895, 0.201),
+                            pyenki.Color(0.173, 0.627, 0.173)]
+        elif goal_object == 'station':
+            face_colours = [pyenki.Color(0, 0.5, 0.5), pyenki.Color(0, 0.5, 0.5), pyenki.Color(0, 0.5, 0.5)]
+        else:
+            raise ValueError("Invalid value for goal_object")
+
+        d_object = pyenki.CompositeObject(
+            [([(0, 1 * size), (0, 0.5 * size), (2 * size, 0.5 * size), (2 * size, 1 * size)], height,
+              [face_colours[0]] * 4),
+             ([(0, -0.5 * size), (0, -1 * size), (2 * size, -1 * size), (2 * size, -0.5 * size)], height,
+              [face_colours[1]] * 4),
+             ([(0, 0.5 * size), (0, -0.5 * size), (0.5 * size, -0.5 * size), (0.5 * size, 0.5 * size)], height,
+              [face_colours[2]] * 4)],
+            -1, pyenki.Color(0, 0.5, 0.5))
+
+        return d_object
+
+    @classmethod
+    def setup(cls, controller_factory, goal_object):
         """
         Set up the world.
         :param controller_factory: if the controller is passed, load the learned network
+        :param goal_object: influence the colour of the docking station
         :return world, marxbot, docking_station
+
         """
+
         # Create an unbounded world
         world = pyenki.World()
 
@@ -85,11 +112,7 @@ class GenerateSimulationData:
         size = 20.0
         height = 40.0
 
-        d_object = pyenki.CompositeObject(
-            [([(0, 1 * size), (0, 0.5 * size), (2 * size, 0.5 * size), (2 * size, 1 * size)], height),
-             ([(0, -0.5 * size), (0, -1 * size), (2 * size, -1 * size), (2 * size, -0.5 * size)], height),
-             ([(0, 0.5 * size), (0, -0.5 * size), (0.5 * size, -0.5 * size), (0.5 * size, 0.5 * size)], height)],
-            -1, pyenki.Color(0, 0.5, 0.5))
+        d_object = cls.setup_docking_station(size, height, goal_object)
         world.add_object(d_object)
 
         # Decide the pose of the docking_station
@@ -135,7 +158,7 @@ class GenerateSimulationData:
         marxbot.goal_reached = False
 
     @classmethod
-    def init_dataset(cls):
+    def init_dataset(cls, goal_object):
         """
 
         :return:
@@ -167,6 +190,8 @@ class GenerateSimulationData:
             "channel": (..., ["r", "g", "b"]),
             "wheel": (..., ["l", "r"]),
             "scanner_angle": (..., np.linspace(-np.pi, np.pi, 180))
+        }, attrs={
+            "goal_object": goal_object
         })
 
     @classmethod

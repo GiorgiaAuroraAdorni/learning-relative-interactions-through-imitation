@@ -147,7 +147,7 @@ def load_dataset(runs_dir, name='simulation', *, load_dataset=True, load_splits=
 
 
 # Current version number of dataset files
-CURRENT_VERSION = 2
+CURRENT_VERSION = 3
 
 
 def migrate_dataset(dataset):
@@ -167,6 +167,9 @@ def migrate_dataset(dataset):
         # Migrate from v1 to v2:
         #  * Rename wheel_target_speed to wheel_target_speeds
         dataset = dataset.rename(wheel_target_speed='wheel_target_speeds')
+
+    if version < 3:
+        dataset.attrs['goal_object'] = 'station'
 
     # Set the current version
     dataset.attrs['version'] = CURRENT_VERSION
