@@ -677,3 +677,23 @@ def plot_regressor(y_g, y_p, img_dir, filename):
     axes[1].set_title('Angular Velocity', weight='bold', fontsize=12)
 
     save_visualisation(filename, img_dir)
+
+
+def plot_losses_distribution(train_losses, valid_losses, img_dir, filename):
+    """
+
+    :param valid_losses:
+    :param train_losses:
+    :param img_dir:
+    :param filename:
+    """
+    plt.figure(figsize=(7.8, 4.8), constrained_layout=True)
+    plt.hist([train_losses, valid_losses], label=['train', 'validation'], alpha=0.9)
+    plt.yscale('log')
+    plt.ylim(0.1, plt.ylim()[1] + 1)
+    plt.legend()
+
+    plt.xlabel('loss value', fontsize=11)
+    plt.ylabel('samples', fontsize=11)
+
+    save_visualisation(filename, img_dir)
