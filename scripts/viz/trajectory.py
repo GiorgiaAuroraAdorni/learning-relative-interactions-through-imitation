@@ -2,8 +2,8 @@ import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 
+import plots
 from viz.env import Viz, Env
-from plots import draw_docking_station, draw_marxbot
 
 
 class TrajectoryViz(Viz):
@@ -40,7 +40,7 @@ class TrajectoryViz(Viz):
         for trajectory in self.trajectories:
             trajectory.show(self.ax, env.refresh_interval)
 
-        draw_docking_station(self.ax)
+        plots.draw_docking_station(self.ax)
 
         self.ax.set_title('Trajectories')
         self.ax.set_xlabel("x axis")
@@ -76,9 +76,9 @@ class _SingleTrajectoryViz:
         )[0]
 
         if self.show_goal:
-            self.goal_pose = draw_marxbot(ax, label="goal position", colour=self.goal_colour)
+            self.goal_pose = plots.draw_marxbot(ax, label="goal position", colour=self.goal_colour)
 
-        self.current_pose = draw_marxbot(ax, label="current position", colour=self.colour)
+        self.current_pose = plots.draw_marxbot(ax, label="current position", colour=self.colour)
 
     def update(self):
         self.trajectory = np.roll(self.trajectory, -1, axis=1)
