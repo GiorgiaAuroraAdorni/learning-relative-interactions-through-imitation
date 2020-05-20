@@ -1,14 +1,16 @@
 # PyEnki is not available on PyPI, download and build from http://github.com/jeguzzi/enki
 # pyenki
+# PyQt5==5.14.2
 
 torch==1.5.0
 tensorboard==2.2.1
 torchsummary==1.5.1
 
-numpy==1.18.3
+numpy==1.18.4
 matplotlib==3.2.1
 seaborn==0.10.1
 xarray==0.15.1
 netCDF4==1.5.3
 tqdm==4.46.0
-sklearn==0.22.2.post1
+pandas==1.0.3
+scikit-learn==0.23.1
