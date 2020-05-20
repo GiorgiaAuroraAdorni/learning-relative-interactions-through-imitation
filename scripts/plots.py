@@ -211,17 +211,22 @@ def draw_docking_station(ax):
     ))
 
 
-def draw_marxbot(ax, position, angle, label=None, radius=8.5):
+def draw_marxbot(ax, position=None, angle=None, *, label=None, colour=None, radius=8.5):
     """
 
     :param ax:
-    :param state:
     :param position:
     :param angle:
     :param label:
+    :param colour:
     :param radius:
     :return:
     """
+    if colour is None:
+        if label == 'goal position':
+            colour = 'tab:orange'
+        else:
+            colour = 'tab:blue'
 
     class MarxbotPatch:
         _points = Point.from_list([
@@ -231,11 +236,6 @@ def draw_marxbot(ax, position, angle, label=None, radius=8.5):
 
         def __init__(self, ax):
             points = self._points.to_euclidean().T
-
-            if label == 'goal position':
-                colour = 'tab:orange'
-            else:
-                colour = 'tab:blue'
 
             self.circle = plt.Circle(
                 points[0], radius,

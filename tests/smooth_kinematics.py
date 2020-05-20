@@ -13,11 +13,19 @@ world = pyenki.World(200)
 
 controller = controllers.OmniscientController()
 marxbot = MyMarxbot("marxbot", controller)
-marxbot.position = (0, 0)
-marxbot.angle = 0
+marxbot.position = (100, 50)
+marxbot.angle = -np.pi/2
 marxbot.goal_position = (38, 0)
 marxbot.goal_angle = np.pi
 world.add_object(marxbot)
+
+controller2 = controllers.OmniscientController()
+marxbot2 = MyMarxbot("marxbot2", controller)
+marxbot2.position = (-50, 100)
+marxbot2.angle = np.pi
+marxbot2.goal_position = (0, 50)
+marxbot2.goal_angle = -np.pi/2
+world.add_object(marxbot2)
 
 size = 20.0
 height = 40.0
@@ -55,7 +63,7 @@ view.show()
 # Create the visualizations
 env = viz.FuncAnimationEnv([
     viz.GridLayout((1, 3), [
-        viz.TrajectoryViz(marxbot),
+        viz.TrajectoryViz(marxbot, marxbot2),
         viz.LaserScannerViz(marxbot),
         viz.ControlSignalsViz(marxbot)
     ], suptitle='Smooth Kinematics Demo')

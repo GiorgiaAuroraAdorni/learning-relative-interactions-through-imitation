@@ -121,11 +121,11 @@ class FuncAnimationEnv(Env):
         self.fig.execute_constrained_layout()
         self.fig.set_constrained_layout(False)
 
-        # Use the minimum length of the sources to control the number of frames
+        # Use the maximum length of the sources to control the number of frames
         # to be drawn. Defaults to None, which results in an infinite animation.
         self._frames = None
         if len(self.sources) > 0:
-            self._frames = min(len(ds) for ds in self.sources)
+            self._frames = max(len(ds) for ds in self.sources)
 
         interval = round(1000 * self.refresh_interval)
 
@@ -183,6 +183,10 @@ class DatasetSource(Source):
         self.current_sample = None
 
     def _update(self, frame):
+        # FIXME: this just repeats the last frame forever, maybe there's a better
+        #        way to signal that this source has ended?
+        frame = min(frame, len(self) - 1)
+
         self.current_sample = self.dataset[{self.dim: frame}]
 
     def __len__(self):
