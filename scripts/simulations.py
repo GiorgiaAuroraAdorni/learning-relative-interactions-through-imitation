@@ -86,9 +86,9 @@ class GenerateSimulationData:
             [([(0, 1 * size), (0, 0.5 * size), (2 * size, 0.5 * size), (2 * size, 1 * size)], height,
               [face_colours[0]] * 4),
              ([(0, -0.5 * size), (0, -1 * size), (2 * size, -1 * size), (2 * size, -0.5 * size)], height,
-              [face_colours[1]] * 4),
+              [face_colours[2]] * 4),
              ([(0, 0.5 * size), (0, -0.5 * size), (0.5 * size, -0.5 * size), (0.5 * size, 0.5 * size)], height,
-              [face_colours[2]] * 4)],
+              [face_colours[1]] * 4)],
             -1, pyenki.Color(0, 0.5, 0.5))
 
         return d_object

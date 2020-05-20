@@ -80,8 +80,7 @@ if __name__ == '__main__':
                 from plots import generate_dataset_plots
 
                 print('Generating plots for %s %s controller…' % (d, c))
-                generate_dataset_plots(run_dir, run_img_dir, run_video_dir)
-
+                generate_dataset_plots(run_dir, run_img_dir, run_video_dir, args.goal_object)
             if args.generate_splits:
                 print('Generating splits…')
                 dataset = load_dataset(run_dir)
@@ -103,7 +102,7 @@ if __name__ == '__main__':
                     print('Generating plots for model %s…' % args.model)
 
                     from plots import plot_initial_positions
-                    plot_initial_positions(run_dir, model_img_dir, 'initial-positions')
+                    plot_initial_positions(args.goal_object, run_dir, model_img_dir, 'initial-positions')
 
                     from network_evaluation import evaluate_net
                     dataset, splits = load_dataset(run_dir, load_splits=True)

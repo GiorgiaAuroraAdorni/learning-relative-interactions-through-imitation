@@ -14,21 +14,22 @@ from kinematics import to_robot_velocities
 from utils import unpack
 
 
-def generate_dataset_plots(run_dir, img_dir, video_dir):
+def generate_dataset_plots(run_dir, img_dir, video_dir, goal_object):
     """
 
     :param run_dir:
     :param img_dir:
     :param video_dir:
+    :param goal_object
     """
     plot_distance_from_goal(run_dir, img_dir, 'distances-from-goal')
     plot_position_over_time(run_dir, img_dir, 'pose-over-time')
     plot_goal_reached_distribution(run_dir, img_dir, 'goal-reached')
-    plot_trajectory(run_dir, img_dir, 'robot-trajectory')
-    plot_trajectories(run_dir, img_dir, '10-robot-trajectories')
+    plot_trajectory(goal_object, run_dir, img_dir, 'robot-trajectory')
+    plot_trajectories(goal_object, run_dir, img_dir, '10-robot-trajectories')
     plot_sensors(run_dir, video_dir, 'sensors-control-response-over-time')
-    plot_positions_scatter(run_dir, img_dir, 'initial-final-positions')
-    plot_positions_heatmap(run_dir, img_dir, 'positions-heatmap')
+    plot_positions_scatter(goal_object, run_dir, img_dir, 'initial-final-positions')
+    plot_positions_heatmap(goal_object, run_dir, img_dir, 'positions-heatmap')
 
 
 def save_visualisation(filename, img_dir, make_space=False, axes=None):
@@ -189,26 +190,62 @@ def plot_goal_reached_distribution(runs_dir, img_dir, filename):
     save_visualisation(filename, img_dir)
 
 
-def draw_docking_station(ax):
+def draw_docking_station(ax, goal_object='station'):
     """
 
     :param ax:
+    :param goal_object
     """
-    obj_points = Point.from_list([
-        (-0.5, 1, 1), (1.5, 1, 1), (1.5, 0.5, 1), (0, 0.5, 1),
-        (0, -0.5, 1), (1.5, -0.5, 1), (1.5, -1, 1), (-0.5, -1, 1)
-    ])
+    obj_tform = Transform.scale(20) @ Transform.translate(-0.85, 0)
 
-    obj_tform = Transform.translate(-7, 0) @ Transform.scale(20)
-    obj_points = obj_points.transformed(obj_tform).to_euclidean().T
+    if goal_object == 'station':
+        obj_points = Point.from_list([
+            (0, 1, 1), (2, 1, 1), (2, 0.5, 1), (0.5, 0.5, 1),
+            (0.5, -0.5, 1), (2, -0.5, 1), (2, -1, 1), (0, -1, 1)
+        ])
 
-    ax.add_patch(plt.Polygon(
-        obj_points,
-        facecolor=colors.to_rgba([0, 0.5, 0.5], alpha=0.5),
-        edgecolor=[0, 0.5, 0.5],
-        linewidth=1.5,
-        label='docking station'
-    ))
+        obj_points = obj_points.transformed(obj_tform).to_euclidean().T
+
+        ax.add_patch(plt.Polygon(
+            obj_points,
+            facecolor=colors.to_rgba([0, 0.5, 0.5], alpha=0.5),
+            edgecolor=[0, 0.5, 0.5],
+            linewidth=1.5
+            ))
+    elif goal_object == 'coloured_station':
+        face_colours = [[0.839, 0.153, 0.157], [1.000, 0.895, 0.201], [0.173, 0.627, 0.173]]
+
+        obj_points = Point.from_list([(0,  1,   1), (0,  0.5, 1), (2,    0.5, 1), (2,   1,   1),
+                                      (0, -1,   1), (0, -0.5, 1), (2,   -0.5, 1), (2,  -1,   1),
+                                      (0,  0.5, 1), (0, -0.5, 1), (0.5, -0.5, 1), (0.5, 0.5, 1)])
+
+        obj_points = obj_points.transformed(obj_tform).to_euclidean().T
+
+        arm1_points = obj_points[:4]
+        arm2_points = obj_points[4:8]
+        back_points = obj_points[8:]
+
+        ax.add_patch(plt.Polygon(
+            back_points,
+            facecolor=colors.to_rgba(face_colours[1], alpha=0.5),
+            edgecolor=face_colours[1],
+            linewidth=1.5
+        ))
+        ax.add_patch(plt.Polygon(
+            arm1_points,
+            facecolor=colors.to_rgba(face_colours[0], alpha=0.5),
+            edgecolor=face_colours[0],
+            linewidth=1.5
+        ))
+        ax.add_patch(plt.Polygon(
+            arm2_points,
+            facecolor=colors.to_rgba(face_colours[2], alpha=0.5),
+            edgecolor=face_colours[2],
+            linewidth=1.5
+        ))
+
+    else:
+        raise ValueError("Invalid value for goal_object")
 
 
 def draw_marxbot(ax, position=None, angle=None, *, label=None, colour=None, radius=8.5):
@@ -267,9 +304,10 @@ def draw_marxbot(ax, position=None, angle=None, *, label=None, colour=None, radi
     return patch
 
 
-def plot_trajectory(runs_dir, img_dir, filename, run_id=0):
+def plot_trajectory(goal_object, runs_dir, img_dir, filename, run_id=0):
     """
 
+    :param goal_object
     :param runs_dir:
     :param img_dir:
     :param filename:
@@ -293,7 +331,7 @@ def plot_trajectory(runs_dir, img_dir, filename, run_id=0):
     ax.set_ylabel('y axis', fontsize=11)
     ax.grid()
 
-    draw_docking_station(ax)
+    draw_docking_station(ax, goal_object)
     draw_marxbot(ax, init_position, init_angle, label='initial position')
     draw_marxbot(ax, goal_position, goal_angle, label='goal position')
     plt.plot(x_position, y_position, color='black', label='trajectory', linewidth=1)
@@ -308,12 +346,13 @@ def plot_trajectory(runs_dir, img_dir, filename, run_id=0):
     save_visualisation(filename, img_dir)
 
 
-def plot_trajectories(runs_dir, img_dir, filename, n_runs=10):
+def plot_trajectories(goal_object, runs_dir, img_dir, filename, n_runs=10):
     """
 
     :param runs_dir:
     :param img_dir:
     :param filename:
+    :param goal_object
     :param n_runs:
     """
     dataset_states = load_dataset(runs_dir)
@@ -339,7 +378,7 @@ def plot_trajectories(runs_dir, img_dir, filename, n_runs=10):
             goal_position = run_states.goal_position[run_id]
             goal_angle = run_states.goal_angle[run_id]
 
-            draw_docking_station(ax)
+            draw_docking_station(ax, goal_object)
             draw_marxbot(ax, goal_position, goal_angle, label='goal position')
 
             draw_marxbot(ax, init_position, init_angle, label='initial positions')
@@ -382,9 +421,10 @@ def plot_sensors(runs_dir, video_dir, filename):
     env.save(video_path, dpi=300)
 
 
-def plot_positions_scatter(runs_dir, img_dir, filename):
+def plot_positions_scatter(goal_object, runs_dir, img_dir, filename):
     """
 
+    :param goal_object
     :param runs_dir:
     :param img_dir:
     :param filename:
@@ -407,7 +447,7 @@ def plot_positions_scatter(runs_dir, img_dir, filename):
     axes[0].scatter(x, y, alpha=0.1, label=label, marker='o', s=(radius*np.pi)**2/5,
                     facecolor=colors.to_rgba('tab:blue', alpha=0.1), edgecolor='none')
     axes[0].set_ylabel('y axis', fontsize=11)
-    draw_docking_station(axes[0])
+    draw_docking_station(axes[0], goal_object)
     draw_marxbot(axes[0], goal_position, goal_angle, label='goal position')
 
     axes[0].set_xlim(-250, 250)
@@ -425,7 +465,7 @@ def plot_positions_scatter(runs_dir, img_dir, filename):
 
     axes[1].scatter(x, y, label='final positions', marker='o', s=(radius*np.pi)**2/5,
                     facecolor=colors.to_rgba('tab:blue', alpha=0.1), edgecolor='none')
-    draw_docking_station(axes[1])
+    draw_docking_station(axes[1], goal_object)
     draw_marxbot(axes[1], goal_position, goal_angle, label='goal position')
 
     axes[1].set_xlim(-250, 250)
@@ -437,9 +477,9 @@ def plot_positions_scatter(runs_dir, img_dir, filename):
     save_visualisation(filename, img_dir)
 
 
-def plot_initial_positions(runs_dir, img_dir, filename):
+def plot_initial_positions(goal_object, runs_dir, img_dir, filename):
     """
-
+    :param goal_object
     :param runs_dir:
     :param img_dir:
     :param filename:
@@ -457,7 +497,7 @@ def plot_initial_positions(runs_dir, img_dir, filename):
 
     ax = plt.gca()
 
-    draw_docking_station(ax)
+    draw_docking_station(ax, goal_object)
 
     goal_position = step_states.goal_position[0]
     goal_angle = step_states.goal_angle[0]
@@ -475,7 +515,15 @@ def plot_initial_positions(runs_dir, img_dir, filename):
     save_visualisation(filename, img_dir)
 
 
-def plot_positions_heatmap(runs_dir, img_dir, filename):
+def plot_positions_heatmap(goal_object, runs_dir, img_dir, filename):
+    """
+
+    :param goal_object:
+    :param runs_dir:
+    :param img_dir:
+    :param filename:
+    """
+
     dataset_states = load_dataset(runs_dir)
 
     x, y = unpack(dataset_states.position, 'axis')
@@ -504,7 +552,7 @@ def plot_positions_heatmap(runs_dir, img_dir, filename):
     plt.xlabel('x axis', fontsize=11)
     plt.ylabel('y axis', fontsize=11)
 
-    draw_docking_station(plt.gca())
+    draw_docking_station(plt.gca(), goal_object)
 
     save_visualisation(filename, img_dir)
 
