@@ -1,31 +1,36 @@
+import itertools
 import numpy as np
-from matplotlib import colors, patches
-from matplotlib.projections import PolarAxes
 import matplotlib.pyplot as plt
-from typing import cast
 
 from viz.env import Viz, Env
 from plots import draw_docking_station, draw_marxbot
 
 
 class TrajectoryViz(Viz):
-    def __init__(self, *marxbots, show_goals=True, time_window=20):
+    def __init__(self, *marxbots, time_window=20, show_goals=True, colours=None, goal_colours=None):
         """
         Visualization that shows the trajectories of one or more marXbots in the
         world.
 
         :param marxbots: The Source objects for the robots to visualize
-        :param show_goals: Whether to show the goal positions, possible values: True, False, 'first' [default True]
         :param time_window: Show the trajectories for the last time_window seconds.
+        :param show_goals: Whether to show the goal positions, possible values: True, False, 'first' [default True]
+        :param colours: The colours to use for the marXbots' current positions
+        :param goal_colours: The colours to use for the marXbots' goal positions
         """
         super().__init__()
 
         self.trajectories = []
 
-        for i, marxbot in enumerate(marxbots):
-            colour = 'C%d' % i
+        if colours is None:
+            colours = ['tab:blue', 'tab:purple']
+
+        if goal_colours is None:
+            goal_colours = itertools.cycle(['tab:orange'])
+
+        for i, (marxbot, colour, goal_colour) in enumerate(zip(marxbots, colours, goal_colours)):
             show_goal = (show_goals is True) or (show_goals == 'first' and i == 0)
-            trajectory = _SingleTrajectoryViz(marxbot, colour, time_window, show_goal)
+            trajectory = _SingleTrajectoryViz(marxbot, time_window, show_goal, colour, goal_colour)
 
             self.trajectories.append(trajectory)
 
@@ -54,11 +59,12 @@ class TrajectoryViz(Viz):
 
 
 class _SingleTrajectoryViz:
-    def __init__(self, marxbot, colour, time_window, show_goal):
+    def __init__(self, marxbot, time_window, show_goal, colour, goal_colour):
         self.marxbot = marxbot
-        self.colour = colour
         self.time_window = time_window
         self.show_goal = show_goal
+        self.colour = colour
+        self.goal_colour = goal_colour
 
     def show(self, ax: plt.Axes, refresh_interval):
         self.n_samples = round(self.time_window / refresh_interval)
@@ -70,7 +76,7 @@ class _SingleTrajectoryViz:
         )[0]
 
         if self.show_goal:
-            self.goal_pose = draw_marxbot(ax, label="goal position")
+            self.goal_pose = draw_marxbot(ax, label="goal position", colour=self.goal_colour)
 
         self.current_pose = draw_marxbot(ax, label="current position", colour=self.colour)
 
