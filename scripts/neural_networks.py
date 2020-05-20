@@ -209,7 +209,7 @@ def load_network(model_dir, device='cpu'):
     return net
 
 
-def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=500, lr=0.001, batch_size=2**14):
+def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, loss='mse', n_epochs=500, lr=0.001, batch_size=2**14):
     """
 
     :param dataset:
@@ -217,6 +217,7 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=500
     :param model_dir:
     :param metrics_path:
     :param tboard_dir:
+    :param loss:
     :param n_epochs:
     :param lr:
     :param batch_size:
@@ -233,7 +234,13 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=500
     net = ConvNet()
     net.to(device)
 
-    criterion = nn.MSELoss()
+    if loss == 'mse':
+        criterion = nn.MSELoss()
+    elif loss == 'smooth_l1':
+        criterion = nn.SmoothL1Loss()
+    else:
+        raise ValueError("Unsupported loss function '%s'." % loss)
+
     optimizer = torch.optim.Adam(net.parameters(), lr=lr)
 
     # Print model information
@@ -289,8 +296,7 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=500
     best_epoch = stopping.restore_best_net(net)
     print("Restoring best network from epoch %d." % best_epoch)
 
-    #
-
+    # Save the final model to file.
     save_network(model_dir, net)
     metrics.finalize()
 

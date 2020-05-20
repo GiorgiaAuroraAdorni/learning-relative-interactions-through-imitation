@@ -35,6 +35,9 @@ def parse_args():
 
     parser.add_argument('--model', default='net1', type=str,
                         help='name of the model (default: net1)')
+    parser.add_argument('--loss', default='mse', choices=['mse', 'smooth_l1'],
+                        help='choose the loss function to use for training or evaluating the network, '
+                             'between mse and smooth_l1 (default: mse)')
     parser.add_argument('--train-net', action="store_true",
                         help='train the model  (default: False)')
     parser.add_argument('--evaluate-net', action="store_true",
@@ -96,7 +99,7 @@ if __name__ == '__main__':
 
                     dataset, splits = load_dataset(run_dir, load_splits=True)
 
-                    train_net(dataset, splits, model_dir, metrics_path, tboard_dir)
+                    train_net(dataset, splits, model_dir, metrics_path, tboard_dir, loss=args.loss)
 
                 if args.evaluate_net:
                     print('Generating plots for model %s…' % args.model)
@@ -106,4 +109,4 @@ if __name__ == '__main__':
 
                     from network_evaluation import evaluate_net
                     dataset, splits = load_dataset(run_dir, load_splits=True)
-                    evaluate_net(dataset, splits, model_dir, model_img_dir, metrics_path)
+                    evaluate_net(dataset, splits, model_dir, model_img_dir, metrics_path, args.loss)

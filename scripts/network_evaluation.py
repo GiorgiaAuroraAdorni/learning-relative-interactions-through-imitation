@@ -7,12 +7,13 @@ from plots import plot_losses, plot_target_distribution, plot_regressor, plot_wh
     plot_velocities_over_time, plot_losses_distribution
 
 
-def get_predictions(net, valid_loader, device):
+def get_predictions(net, valid_loader, device, loss):
     """
 
     :param net:
     :param valid_loader:
     :param device:
+    :param loss:
     :return predictions, groundtruth:
     """
     predictions = []
@@ -20,7 +21,13 @@ def get_predictions(net, valid_loader, device):
     losses = []
 
     # The unreduced losses are used to generate the plot of their distribution.
-    criterion = torch.nn.MSELoss(reduction='none')
+    # TODO: should default to the same loss that was used for training
+    if loss == 'mse':
+        criterion = torch.nn.MSELoss(reduction='none')
+    elif loss == 'smooth_l1':
+        criterion = torch.nn.SmoothL1Loss(reduction='none')
+    else:
+        raise ValueError("Unsupported loss function '%s'." % loss)
 
     with torch.no_grad():
         for batch in valid_loader:
@@ -40,7 +47,7 @@ def get_predictions(net, valid_loader, device):
     return predictions, groundtruth, losses
 
 
-def evaluate_net(dataset, splits, model_dir, img_dir_model, file_metrics):
+def evaluate_net(dataset, splits, model_dir, img_dir_model, file_metrics, loss):
     """
 
     :param dataset:
@@ -49,6 +56,7 @@ def evaluate_net(dataset, splits, model_dir, img_dir_model, file_metrics):
     :param model:
     :param img_dir_model:
     :param file_metrics:
+    :param loss:
     :return:
     """
     losses = pd.read_pickle(file_metrics)
@@ -67,8 +75,8 @@ def evaluate_net(dataset, splits, model_dir, img_dir_model, file_metrics):
     device = torch.device("cpu")
     net = load_network(model_dir, device)
 
-    v_prediction, v_groundtruth, v_losses = get_predictions(net, valid_loader, device)
-    t_prediction, t_groundtruth, t_losses = get_predictions(net, train_loader, device)
+    v_prediction, v_groundtruth, v_losses = get_predictions(net, valid_loader, device, loss)
+    t_prediction, t_groundtruth, t_losses = get_predictions(net, train_loader, device, loss)
 
     predictions = [t_prediction, v_prediction]
     groundtruths = [t_groundtruth, v_groundtruth]
