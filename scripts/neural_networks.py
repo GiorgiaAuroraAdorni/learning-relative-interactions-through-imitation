@@ -209,7 +209,7 @@ def load_network(model_dir, device='cpu'):
     return net
 
 
-def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=100, lr=0.01, batch_size=2**14):
+def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, n_epochs=500, lr=0.001, batch_size=2**14):
     """
 
     :param dataset:
