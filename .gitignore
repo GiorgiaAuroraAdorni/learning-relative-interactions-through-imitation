@@ -296,8 +296,8 @@ dmypy.json
 # End of https://www.gitignore.io/api/macos,python,pycharm,jetbrains,jupyternotebooks
 
 # Dataset and models visualizations
-datasets/*/images
-datasets/*/videos
+datasets/**/images
+datasets/**/videos
 
 models/*/images
 models/*/videos
