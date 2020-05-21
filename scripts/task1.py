@@ -20,8 +20,11 @@ def parse_args():
                         help='generate the plots of regarding the dataset (default: False)')
     parser.add_argument('--generate-splits', action="store_true",
                         help='generate dataset splits for training, validation and testing (default: False)')
-    parser.add_argument('--controller', default='all', choices=['all', 'learned', 'omniscient'],
-                        help='choose the controller for the current execution between all, learned, manual and '
+    # parser.add_argument('--controller', default='all', choices=['all', 'learned', 'omniscient'],
+    #                     help='choose the controller for the current execution between all, learned, manual and '
+    #                          'omniscient (default: all)')
+    parser.add_argument('--controller', default='all', type=str,
+                        help='choose the controller for the current execution usually between all, learned and '
                              'omniscient (default: all)')
 
     parser.add_argument('--dataset-folder', default='datasets', type=str,

@@ -7,7 +7,7 @@ from viz.env import Viz, Env
 
 
 class TrajectoryViz(Viz):
-    def __init__(self, *marxbots, time_window=20, show_goals=True, colours=None, goal_colours=None):
+    def __init__(self, *marxbots, time_window=20, show_goals=True, colours=None, goal_colours=None, goal_object='station'):
         """
         Visualization that shows the trajectories of one or more marXbots in the
         world.
@@ -28,6 +28,8 @@ class TrajectoryViz(Viz):
         if goal_colours is None:
             goal_colours = itertools.cycle(['tab:orange'])
 
+        self.goal_object = goal_object
+
         for i, (marxbot, colour, goal_colour) in enumerate(zip(marxbots, colours, goal_colours)):
             show_goal = (show_goals is True) or (show_goals == 'first' and i == 0)
             trajectory = _SingleTrajectoryViz(marxbot, time_window, show_goal, colour, goal_colour)
@@ -40,7 +42,7 @@ class TrajectoryViz(Viz):
         for trajectory in self.trajectories:
             trajectory.show(self.ax, env.refresh_interval)
 
-        plots.draw_docking_station(self.ax)
+        plots.draw_docking_station(self.ax, self.goal_object)
 
         self.ax.set_title('Trajectories')
         self.ax.set_xlabel("x axis")

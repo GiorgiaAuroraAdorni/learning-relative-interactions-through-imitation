@@ -27,7 +27,8 @@ def generate_dataset_plots(run_dir, img_dir, video_dir, goal_object):
     plot_goal_reached_distribution(run_dir, img_dir, 'goal-reached')
     plot_trajectory(goal_object, run_dir, img_dir, 'robot-trajectory')
     plot_trajectories(goal_object, run_dir, img_dir, '10-robot-trajectories')
-    plot_sensors(run_dir, video_dir, 'sensors-control-response-over-time')
+    for r in range(5):
+        plot_sensors(goal_object, run_dir, video_dir, 'sensors-control-response-over-time', run_id=r)
     plot_positions_scatter(goal_object, run_dir, img_dir, 'initial-final-positions')
     plot_positions_heatmap(goal_object, run_dir, img_dir, 'positions-heatmap')
 
@@ -395,29 +396,31 @@ def plot_trajectories(goal_object, runs_dir, img_dir, filename, n_runs=10):
     save_visualisation(filename, img_dir)
 
 
-def plot_sensors(runs_dir, video_dir, filename):
+def plot_sensors(goal_object, runs_dir, video_dir, filename, run_id=0):
     """
 
+    :param goal_object:
     :param runs_dir:
     :param video_dir:
     :param filename:
+    :param run_id
     """
     dataset_states = load_dataset(runs_dir)
-    run_states = dataset_states.where(dataset_states.run == 0, drop=True)
+    run_states = dataset_states.where(dataset_states.run == run_id, drop=True)
 
     marxbot = viz.DatasetSource(run_states)
 
     # Create the visualizations
     env = viz.FuncAnimationEnv([
         viz.GridLayout((1, 3), [
-            viz.TrajectoryViz(marxbot),
+            viz.TrajectoryViz(marxbot, goal_object=goal_object),
             viz.LaserScannerViz(marxbot),
             viz.ControlSignalsViz(marxbot)
-        ], suptitle='Run 0')
+        ], suptitle='Run %d' % run_id)
     ], sources=[marxbot])
     env.show(figsize=(14, 4))
 
-    video_path = os.path.join(video_dir, '%s.mp4' % filename)
+    video_path = os.path.join(video_dir, '%s-%d.mp4' % (filename, run_id))
     env.save(video_path, dpi=300)
 
 
