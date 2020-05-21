@@ -102,7 +102,7 @@ if __name__ == '__main__':
                     train_net(dataset, splits, model_dir, metrics_path, tboard_dir, loss=args.loss)
 
                 if args.evaluate_net:
-                    print('Generating plots for model %s…' % args.model)
+                    print('Generating plots for model %s, using loss function "%s"…' % (args.model, args.loss))
 
                     from plots import plot_initial_positions
                     plot_initial_positions(args.goal_object, run_dir, model_img_dir, 'initial-positions')

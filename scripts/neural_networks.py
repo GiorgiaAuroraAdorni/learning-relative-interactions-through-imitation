@@ -245,6 +245,7 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir, loss='mse', 
 
     # Print model information
     print("Device:", device)
+    print("Loss function:", loss)
     torchsummary.summary(net, input_size=(4, 180))
     print()
 
