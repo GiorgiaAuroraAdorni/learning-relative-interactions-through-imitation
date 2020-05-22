@@ -46,21 +46,25 @@ class OmniscientController(Controller):
     the robots, the omniscient control moves the robots at a constant speed, calculating the distance from the
     actual pose to the target one.
     """
+    FORWARD = 0
+    BACKWARD = 1
+
     def __init__(self):
         super().__init__()
 
     @staticmethod
-    def current_state(state):
+    def current_state(state, mode):
         """
 
         :param state:
+        :param mode:
         :return r, theta: polar coordinates of the target pose with respect to the actual position
         """
         steer_angle = steering_angle(state)
 
         r = euclidean_distance(state.goal_position, state.position)
-        theta = angle_difference(steer_angle, state.goal_angle)
-        delta = angle_difference(steer_angle, state.angle)
+        theta = angle_difference(steer_angle, state.goal_angle + mode * np.pi)
+        delta = angle_difference(steer_angle, state.angle + mode * np.pi)
 
         return r, theta, delta
 
@@ -130,13 +134,23 @@ class OmniscientController(Controller):
         :param state
         :param dt
         """
-        r, theta, delta = self.current_state(state)
+
+        # Use reverse mode between the arms of the goal object.
+        # TODO: generalize this to choose the best mode in any scenario.
+        x, y = state.position
+        goal_x, goal_y = state.goal_position
+        inside_goal_object = (0 <= x <= goal_x) and (abs(y - goal_y) <= 8.5)
+
+        mode = self.BACKWARD if inside_goal_object else self.FORWARD
+        reverse_lin = (1 - 2*mode)
+
+        r, theta, delta = self.current_state(state, mode)
         delta_hat = self.reference_heading(theta)
         k = self.curvature(r, theta, delta, delta_hat)
 
         lin_vel = self.linear_velocity(min(self.max_vel, 2 * r), k)
         ang_vel = self.angular_velocity(k, lin_vel)
-        left_vel, right_vel = to_wheels_velocities(lin_vel, ang_vel)
+        left_vel, right_vel = to_wheels_velocities(reverse_lin * lin_vel, ang_vel)
 
         return left_vel, right_vel
 
