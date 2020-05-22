@@ -27,10 +27,10 @@ def generate_dataset_plots(run_dir, img_dir, video_dir, goal_object):
     plot_goal_reached_distribution(run_dir, img_dir, 'goal-reached')
     plot_trajectory(goal_object, run_dir, img_dir, 'robot-trajectory')
     plot_trajectories(goal_object, run_dir, img_dir, '10-robot-trajectories')
-    for r in range(5):
-        plot_sensors(goal_object, run_dir, video_dir, 'sensors-control-response-over-time', run_id=r)
     plot_positions_scatter(goal_object, run_dir, img_dir, 'initial-final-positions')
     plot_positions_heatmap(goal_object, run_dir, img_dir, 'positions-heatmap')
+    for r in range(10):
+        plot_sensors(goal_object, run_dir, video_dir, 'sensors-control-response-over-time', run_id=r)
 
 
 def save_visualisation(filename, img_dir, make_space=False, axes=None):
@@ -89,6 +89,7 @@ def plot_distance_from_goal(runs_dir, img_dir, filename):
     axes[0].set_ylabel('euclidean distance', fontsize=11)
     axes[0].set_xlabel('timestep', fontsize=11)
     axes[0].grid()
+    axes[0].set_ylim(bottom=0)
 
     ln, = axes[0].plot(time_steps, p_median, label='median')
     axes[0].fill_between(time_steps, p_q1, p_q2, alpha=0.2, label='interquartile range', color=ln.get_color())
@@ -104,6 +105,7 @@ def plot_distance_from_goal(runs_dir, img_dir, filename):
     axes[1].set_ylabel('angle difference', fontsize=11)
     axes[1].set_xlabel('timestep', fontsize=11)
     axes[1].grid()
+    axes[1].set_ylim(0, 3)
 
     ln, = axes[1].plot(time_steps, a_median, label='median')
     axes[1].fill_between(time_steps, a_q1, a_q2, alpha=0.2, label='interquartile range', color=ln.get_color())
@@ -142,7 +144,7 @@ def plot_position_over_time(runs_dir, img_dir, filename):
 
         ln, = plt.plot(time_steps, median, label=labels[0])
         plt.fill_between(time_steps, q1, q2, alpha=0.2, label=labels[1],
-                       color=ln.get_color())
+                         color=ln.get_color())
         plt.fill_between(time_steps, q3, q4, alpha=0.1, label=labels[2],
                          color=ln.get_color())
 
@@ -186,7 +188,7 @@ def plot_goal_reached_distribution(runs_dir, img_dir, filename):
 
     plt.xlim(0, dataset_states.step.max() + 1)
     plt.xlabel('timestep', fontsize=11)
-    plt.ylabel('samples', fontsize=11)
+    plt.ylabel('runs', fontsize=11)
 
     save_visualisation(filename, img_dir)
 
@@ -212,13 +214,13 @@ def draw_docking_station(ax, goal_object='station'):
             facecolor=colors.to_rgba([0, 0.5, 0.5], alpha=0.5),
             edgecolor=[0, 0.5, 0.5],
             linewidth=1.5
-            ))
+        ))
     elif goal_object == 'coloured_station':
         face_colours = [[0.839, 0.153, 0.157], [1.000, 0.895, 0.201], [0.173, 0.627, 0.173]]
 
-        obj_points = Point.from_list([(0,  1,   1), (0,  0.5, 1), (2,    0.5, 1), (2,   1,   1),
-                                      (0, -1,   1), (0, -0.5, 1), (2,   -0.5, 1), (2,  -1,   1),
-                                      (0,  0.5, 1), (0, -0.5, 1), (0.5, -0.5, 1), (0.5, 0.5, 1)])
+        obj_points = Point.from_list([(0, 1, 1), (0, 0.5, 1), (2, 0.5, 1), (2, 1, 1),
+                                      (0, -1, 1), (0, -0.5, 1), (2, -0.5, 1), (2, -1, 1),
+                                      (0, 0.5, 1), (0, -0.5, 1), (0.5, -0.5, 1), (0.5, 0.5, 1)])
 
         obj_points = obj_points.transformed(obj_tform).to_euclidean().T
 
@@ -447,7 +449,7 @@ def plot_positions_scatter(goal_object, runs_dir, img_dir, filename):
     goal_angle = step_states.goal_angle[0]
 
     radius = 8.5
-    axes[0].scatter(x, y, alpha=0.1, label=label, marker='o', s=(radius*np.pi)**2/5,
+    axes[0].scatter(x, y, alpha=0.1, label=label, marker='o', s=(radius * np.pi) ** 2 / 5,
                     facecolor=colors.to_rgba('tab:blue', alpha=0.1), edgecolor='none')
     axes[0].set_ylabel('y axis', fontsize=11)
     draw_docking_station(axes[0], goal_object)
@@ -466,7 +468,7 @@ def plot_positions_scatter(goal_object, runs_dir, img_dir, filename):
     goal_position = step_states.goal_position[0]
     goal_angle = step_states.goal_angle[0]
 
-    axes[1].scatter(x, y, label='final positions', marker='o', s=(radius*np.pi)**2/5,
+    axes[1].scatter(x, y, label='final positions', marker='o', s=(radius * np.pi) ** 2 / 5,
                     facecolor=colors.to_rgba('tab:blue', alpha=0.1), edgecolor='none')
     draw_docking_station(axes[1], goal_object)
     draw_marxbot(axes[1], goal_position, goal_angle, label='goal position')
@@ -496,7 +498,7 @@ def plot_initial_positions(goal_object, runs_dir, img_dir, filename):
     for i, name in enumerate(splits.split_names):
         split_states = step_states.where(splits == i)
         x, y = unpack(split_states.initial_position, 'axis')
-        plt.plot(x, y, 'o', label=name, alpha=0.1, markersize=(radius * np.pi)/2, markeredgecolor='none')
+        plt.plot(x, y, 'o', label=name, alpha=0.1, markersize=(radius * np.pi) / 2, markeredgecolor='none')
 
     ax = plt.gca()
 
@@ -576,7 +578,7 @@ def plot_losses(train_loss, valid_loss, img_dir, filename):
 
     plt.plot(x, train_loss, label='train')
     plt.plot(x, valid_loss, label='validation')
-    plt.ylim(0, max(min(train_loss), min(valid_loss))*10)
+    plt.ylim(0, max(min(train_loss), min(valid_loss)) * 10)
     plt.legend()
 
     save_visualisation(filename, img_dir)
