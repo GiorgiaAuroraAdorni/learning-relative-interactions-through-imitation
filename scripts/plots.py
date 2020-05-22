@@ -89,11 +89,11 @@ def plot_distance_from_goal(runs_dir, img_dir, filename):
     axes[0].set_ylabel('euclidean distance', fontsize=11)
     axes[0].set_xlabel('timestep', fontsize=11)
     axes[0].grid()
-    axes[0].set_ylim(bottom=0)
 
     ln, = axes[0].plot(time_steps, p_median, label='median')
     axes[0].fill_between(time_steps, p_q1, p_q2, alpha=0.2, label='interquartile range', color=ln.get_color())
     axes[0].fill_between(time_steps, p_q3, p_q4, alpha=0.1, label='interdecile range', color=ln.get_color())
+    axes[0].set_ylim(0)
 
     axes[0].legend()
     axes[0].set_title('Position', weight='bold', fontsize=12)
