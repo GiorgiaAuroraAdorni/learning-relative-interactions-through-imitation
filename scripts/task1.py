@@ -12,6 +12,11 @@ def parse_args():
                         help='run simulation using the gui (default: False)')
     parser.add_argument('--n-simulations', type=int, default=1000, metavar='N',
                         help='number of runs for each simulation (default: 1000)')
+    parser.add_argument('--initial-poses', default='uniform', choices=['uniform', 'load'],
+                        help='choose how to generate the initial positions for each run, '
+                             'between uniform and load (default: uniform)')
+    parser.add_argument('--initial-poses-file', default='initial_poses.npy',
+                        help='name of the file where to store/load the initial poses')
     parser.add_argument('--generate-dataset', action="store_true",
                         help='generate the dataset containing the n_simulations (default: False)')
     parser.add_argument('--goal-object', default="station", choices=['station', 'coloured_station'],
@@ -73,13 +78,27 @@ if __name__ == '__main__':
             run_dir, run_img_dir, run_video_dir = directory_for_dataset(d, c)
             model_dir, model_img_dir, model_video_dir, metrics_path, tboard_dir = directory_for_model(args)
 
+            initial_poses_path = os.path.join(run_dir, args.initial_poses_file)
+
+            if args.initial_poses == 'load':
+                from simulations import GenerateSimulationData as sim
+
+                print("Loading initial poses from file '%s'…" % (initial_poses_path))
+                initial_poses = sim.load_initial_poses(initial_poses_path)
+            else:
+                from simulations import GenerateSimulationData as sim
+
+                print("Generating %d initial positions using method '%s'…" % (args.n_simulations, args.initial_poses))
+                initial_poses = sim.generate_initial_poses(args.initial_poses, args.n_simulations)
+                sim.save_initial_poses(initial_poses_path, initial_poses)
+
             if args.generate_dataset:
                 from simulations import GenerateSimulationData as sim
 
                 print('Generating %s simulations for %s %s controller…' % (args.n_simulations, d, c))
                 dataset = sim.generate_simulation(n_simulations=args.n_simulations, controller=c,
                                                   goal_object=args.goal_object, gui=args.gui,
-                                                  model_dir=model_dir)
+                                                  model_dir=model_dir, initial_poses=initial_poses)
 
                 print('Saving dataset for %s %s controller…' % (d, c))
                 save_dataset(run_dir, dataset=dataset)

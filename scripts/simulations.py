@@ -17,26 +17,8 @@ class GenerateSimulationData:
     LEARNED_CONTROLLER = r"^learned"
 
     @classmethod
-    def generate_simulation(cls, n_simulations, controller, goal_object, gui, model_dir):
-        """
-
-        :param n_simulations:
-        :param controller:
-        :param goal_object
-        :param gui:
-        :param model_dir
-        """
-        if controller == cls.OMNISCIENT_CONTROLLER:
-            controller_factory = controllers_task1.OmniscientController
-        elif re.match(cls.LEARNED_CONTROLLER, controller):
-            net = load_network(model_dir)
-
-            def controller_factory():
-                return controllers_task1.LearnedController(net=net)
-        else:
-            raise ValueError("Invalid value for controller")
-
-        world, marxbot, d_object = cls.setup(controller_factory, goal_object)
+    def generate_initial_poses(cls, mode, n_simulations):
+        assert mode == 'uniform', "TODO: implement other modes"
 
         # Generate random polar coordinates to define the area in which the
         # marXbot can spawn, in particular theta ∈ [0, 2π] and r ∈ [0, max_range * 1.2]
@@ -52,14 +34,47 @@ class GenerateSimulationData:
         theta = np.random.uniform(0, 2 * np.pi, n_simulations)
         angle = np.random.uniform(0, 2 * np.pi, n_simulations)
 
-        marxbot_rel_poses = np.array([r, theta, angle]).T.reshape(-1, 3)
+        initial_poses = np.array([r, theta, angle]).T.reshape(-1, 3)
+
+        return initial_poses
+
+    @classmethod
+    def save_initial_poses(cls, file, initial_poses):
+        np.save(file, initial_poses)
+
+    @classmethod
+    def load_initial_poses(cls, file):
+        return np.load(file)
+
+    @classmethod
+    def generate_simulation(cls, n_simulations, controller, goal_object, gui, model_dir, initial_poses):
+        """
+
+        :param n_simulations:
+        :param controller:
+        :param goal_object:
+        :param gui:
+        :param model_dir:
+        :param initial_poses:
+        """
+        if controller == cls.OMNISCIENT_CONTROLLER:
+            controller_factory = controllers_task1.OmniscientController
+        elif re.match(cls.LEARNED_CONTROLLER, controller):
+            net = load_network(model_dir)
+
+            def controller_factory():
+                return controllers_task1.LearnedController(net=net)
+        else:
+            raise ValueError("Invalid value for controller")
+
+        world, marxbot, d_object = cls.setup(controller_factory, goal_object)
 
         builder = cls.init_dataset(goal_object)
         for n in tqdm(range(n_simulations)):
             try:
                 template = builder.create_template(run=n)
 
-                cls.init_positions(marxbot, d_object, marxbot_rel_poses[n])
+                cls.init_positions(marxbot, d_object, initial_poses[n])
                 cls.run(marxbot, world, builder, template, gui)
             except Exception as e:
                 print('ERROR: ', e)
