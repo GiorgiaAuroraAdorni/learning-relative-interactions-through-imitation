@@ -38,6 +38,9 @@ def parse_args():
 
     parser.add_argument('--model', default='net1', type=str,
                         help='name of the model (default: net1)')
+    parser.add_argument('--arch', default='convnet', choices=['convnet', 'convnet_maxpool'],
+                        help='choose the network architecture to use for training the network, '
+                             'between convnet and convnet_maxpool (default: convnet)')
     parser.add_argument('--loss', default='mse', choices=['mse', 'smooth_l1'],
                         help='choose the loss function to use for training or evaluating the network, '
                              'between mse and smooth_l1 (default: mse)')
@@ -102,7 +105,8 @@ if __name__ == '__main__':
 
                     dataset, splits = load_dataset(run_dir, load_splits=True)
 
-                    train_net(dataset, splits, model_dir, metrics_path, tboard_dir, loss=args.loss)
+                    train_net(dataset, splits, model_dir, metrics_path, tboard_dir,
+                              arch=args.arch, loss=args.loss)
 
                 if args.evaluate_net:
                     print('Generating plots for model %s, using loss function "%s"…' % (args.model, args.loss))
