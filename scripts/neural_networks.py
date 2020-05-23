@@ -129,6 +129,9 @@ def load_network(model_dir, device='cpu'):
     model_path = os.path.join(model_dir, 'model.pt')
     net = torch.load(model_path, map_location=device)
 
+    # Ensure that the network is loaded in evaluation mode by default.
+    net.eval()
+
     return net
 
 
@@ -190,6 +193,9 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir,
 
     # Main training loop
     for epoch in t:
+        # Re-enable training mode, which is disabled by the evaluation
+        # Turns on dropout, batch normalization updates, …
+        net.train()
         train_loss.reset()
 
         for batch in train_loader:
@@ -250,6 +256,8 @@ class NetValidator:
         :return:
         """
         with torch.no_grad():
+            # Switch to evaluation mode: disable dropout, batch normalization updates, …
+            net.eval()
             self.valid_loss.reset()
 
             for batch in self.valid_loader:
