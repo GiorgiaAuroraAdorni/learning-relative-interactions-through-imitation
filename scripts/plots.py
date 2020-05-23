@@ -1,4 +1,5 @@
 import os
+import itertools
 
 import matplotlib.colors as colors
 import matplotlib.patches as mpatches
@@ -251,7 +252,7 @@ def draw_docking_station(ax, goal_object='station'):
         raise ValueError("Invalid value for goal_object")
 
 
-def draw_marxbot(ax, position=None, angle=None, *, label=None, colour=None, radius=8.5):
+def draw_marxbot(ax, position=None, angle=None, *, label=None, colour=None, radius=8.5, show_range=False, range_radius=150.0):
     """
 
     :param ax:
@@ -260,6 +261,8 @@ def draw_marxbot(ax, position=None, angle=None, *, label=None, colour=None, radi
     :param label:
     :param colour:
     :param radius:
+    :param show_range:
+    :param range_radius:
     :return:
     """
     if colour is None:
@@ -292,12 +295,25 @@ def draw_marxbot(ax, position=None, angle=None, *, label=None, colour=None, radi
             ax.add_patch(self.circle)
             ax.add_patch(self.arrow)
 
+            if show_range:
+                self.range_circle = plt.Circle(
+                    points[0], 150.0,
+                    facecolor=colors.to_rgba(colour, alpha=0.1),
+                    edgecolor=colour, linewidth=0.5,
+                    label='sensors range'
+                )
+
+                ax.add_patch(self.range_circle)
+
         def update(self, position, angle):
             tform = Transform.pose_transform(position, angle)
             points = self._points.transformed(tform).to_euclidean().T
 
             self.circle.center = points[0]
             self.arrow.xy = points[1:]
+
+            if show_range:
+                self.range_circle.center = points[0]
 
     patch = MarxbotPatch(ax)
 
@@ -423,6 +439,27 @@ def plot_sensors(goal_object, runs_dir, video_dir, filename, run_id=0):
     env.show(figsize=(14, 4))
 
     video_path = os.path.join(video_dir, '%s-%d.mp4' % (filename, run_id))
+    env.save(video_path, dpi=300)
+
+
+def plot_demo_trajectories(omniscient_ds, learned_ds, goal_object, video_dir, filename):
+    omniscient_bots = [viz.DatasetSource(run) for (run_id, run) in omniscient_ds.groupby('run')]
+    learned_bots = [viz.DatasetSource(run) for (run_id, run) in learned_ds.groupby('run')]
+    trajectory_args = dict(
+        goal_object=goal_object,
+        show_goals='first',
+    )
+
+    # Create the visualizations
+    env = viz.FuncAnimationEnv([
+        viz.GridLayout((1, 2), [
+            viz.TrajectoryViz(*omniscient_bots, colours='tab:blue', title="Omniscient Trajectories", **trajectory_args),
+            viz.TrajectoryViz(*learned_bots, colours='tab:purple', title="Learned Trajectories", **trajectory_args),
+        ], sharey=True)
+    ], sources=omniscient_bots + learned_bots)
+    env.show(figsize=(9.8, 4))
+
+    video_path = os.path.join(video_dir, '%s.mp4' % filename)
     env.save(video_path, dpi=300)
 
 

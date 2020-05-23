@@ -18,21 +18,31 @@ class GenerateSimulationData:
 
     @classmethod
     def generate_initial_poses(cls, mode, n_simulations):
-        assert mode == 'uniform', "TODO: implement other modes"
+        if mode == 'uniform':
+            # Generate random polar coordinates to define the area in which the
+            # marXbot can spawn, in particular theta ∈ [0, 2π] and r ∈ [0, max_range * 1.2]
+            max_range = 150  # corresponds to the proximity sensors maximal range
 
-        # Generate random polar coordinates to define the area in which the
-        # marXbot can spawn, in particular theta ∈ [0, 2π] and r ∈ [0, max_range * 1.2]
-        max_range = 150  # corresponds to the proximity sensors maximal range
+            # Compensate for the higher density of points at smaller values of r. This
+            # is accomplished by uniformly sampling the square of r.
+            # Source: https://stats.stackexchange.com/a/120535
+            rmin, rmax = np.array([0, max_range * 1.2]) ** 2
+            r = np.sqrt(np.random.uniform(rmin, rmax, n_simulations))
 
-        # Compensate for the higher density of points at smaller values of r. This
-        # is accomplished by uniformly sampling the square of r.
-        # Source: https://stats.stackexchange.com/a/120535
-        rmin, rmax = np.array([0, max_range * 1.2]) ** 2
-        r = np.sqrt(np.random.uniform(rmin, rmax, n_simulations))
+            # The angle is chosen randomly in all its possible realisations
+            theta = np.random.uniform(0, 2 * np.pi, n_simulations)
+            angle = np.random.uniform(0, 2 * np.pi, n_simulations)
 
-        # The angle is chosen randomly in all its possible realisations
-        theta = np.random.uniform(0, 2 * np.pi, n_simulations)
-        angle = np.random.uniform(0, 2 * np.pi, n_simulations)
+        elif mode == 'demo':
+            assert n_simulations == 7, "Demo mode only supports a fixed number of simulations"
+
+            origin_r = 38.98
+
+            r     = [origin_r,    origin_r,  2 * origin_r, 2 * origin_r,  2 * origin_r,           200.0,           200.0]
+            theta = [   np.pi, -np.pi / 12, 3 * np.pi / 4,        np.pi, 5 * np.pi / 4,      -np.pi / 4,   7 * np.pi / 8]
+            angle = [     0.0,  np.pi /  2, 5 * np.pi / 4,          0.0,     np.pi / 2,      -np.pi / 6,      -np.pi / 6]
+        else:
+            raise ValueError("Unknown initial_poses mode '%s'" % mode)
 
         initial_poses = np.array([r, theta, angle]).T.reshape(-1, 3)
 
@@ -47,7 +57,7 @@ class GenerateSimulationData:
         return np.load(file)
 
     @classmethod
-    def generate_simulation(cls, n_simulations, controller, goal_object, gui, model_dir, initial_poses):
+    def generate_simulation(cls, n_simulations, controller, goal_object, model_dir, initial_poses, gui=False):
         """
 
         :param n_simulations:
