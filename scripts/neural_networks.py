@@ -98,13 +98,13 @@ def to_torch_loader(dataset, **kwargs):
     return loader
 
 
-def create_network(arch):
+def create_network(arch, dropout):
     if arch == "convnet":
         from nn.convnet import ConvNet
-        return ConvNet()
+        return ConvNet(dropout)
     elif arch == "convnet_maxpool":
         from nn.convnet import ConvNet_MaxPool
-        return ConvNet_MaxPool()
+        return ConvNet_MaxPool(dropout)
     else:
         raise ValueError("Unknown network architecture '%s'" % arch)
 
@@ -133,7 +133,7 @@ def load_network(model_dir, device='cpu'):
 
 
 def train_net(dataset, splits, model_dir, metrics_path, tboard_dir,
-              arch, n_epochs=500, lr=0.001, batch_size=2**14, loss='mse'):
+              arch, n_epochs=500, lr=0.001, batch_size=2**14, loss='mse', dropout=0.0):
     """
 
     :param dataset:
@@ -146,6 +146,7 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir,
     :param lr:
     :param batch_size:
     :param loss:
+    :param dropout:
     :return:
     """
     train, validation, _ = split_datasets(dataset, splits)
@@ -156,7 +157,7 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir,
     # Create the neural network and optimizer
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    net = create_network(arch)
+    net = create_network(arch, dropout)
     net.to(device)
 
     if loss == 'mse':
@@ -171,6 +172,7 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir,
     # Print model information
     print("Device:", device)
     print("Loss function:", loss)
+    print("Dropout: %s" % ('off' if dropout == 0.0 else 'on (p=%g)' % dropout))
     torchsummary.summary(net, input_size=(4, 180))
     print()
 

@@ -49,6 +49,9 @@ def parse_args():
     parser.add_argument('--loss', default='mse', choices=['mse', 'smooth_l1'],
                         help='choose the loss function to use for training or evaluating the network, '
                              'between mse and smooth_l1 (default: mse)')
+    parser.add_argument('--dropout', nargs='?', type=float, default=0.0, const=0.5,
+                        help='enable dropout after fully-connected layers, optionally setting the'
+                             'probability of randomly dropping neuron outputs (default: off, default probability: 0.5)')
     parser.add_argument('--train-net', action="store_true",
                         help='train the model  (default: False)')
     parser.add_argument('--evaluate-net', action="store_true",
@@ -125,7 +128,7 @@ if __name__ == '__main__':
                     dataset, splits = load_dataset(run_dir, load_splits=True)
 
                     train_net(dataset, splits, model_dir, metrics_path, tboard_dir,
-                              arch=args.arch, loss=args.loss)
+                              arch=args.arch, loss=args.loss, dropout=args.dropout)
 
                 if args.evaluate_net:
                     print('Generating plots for model %s, using loss function "%s"…' % (args.model, args.loss))

@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 
 class ConvNet(nn.Module):
-    def __init__(self):
+    def __init__(self, dropout):
         """
 
         """
@@ -25,7 +25,9 @@ class ConvNet(nn.Module):
                                stride=1, padding=2, padding_mode='circular')
 
         self.fc1 = nn.Linear(45 * 32, 128)
+        self.drop1 = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
         self.fc2 = nn.Linear(128, 128)
+        self.drop2 = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
         self.fc3 = nn.Linear(128, 2)
 
     def forward(self, input):
@@ -43,14 +45,16 @@ class ConvNet(nn.Module):
         net = torch.flatten(net, start_dim=1)
 
         net = F.relu(self.fc1(net))
+        net = self.drop1(net)
         net = F.relu(self.fc2(net))
+        net = self.drop2(net)
         output = self.fc3(net)
 
         return output
 
 
 class ConvNet_MaxPool(nn.Module):
-    def __init__(self):
+    def __init__(self, dropout):
         """
 
         """
@@ -72,7 +76,9 @@ class ConvNet_MaxPool(nn.Module):
                                stride=1, padding=2, padding_mode='circular')
 
         self.fc1 = nn.Linear(15 * 96, 128)
+        self.drop1 = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
         self.fc2 = nn.Linear(128, 128)
+        self.drop2 = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
         self.fc3 = nn.Linear(128, 2)
 
     def forward(self, input):
@@ -95,7 +101,9 @@ class ConvNet_MaxPool(nn.Module):
         net = torch.flatten(net, start_dim=1)
 
         net = F.relu(self.fc1(net))
+        net = self.drop1(net)
         net = F.relu(self.fc2(net))
+        net = self.drop2(net)
         output = self.fc3(net)
 
         return output
