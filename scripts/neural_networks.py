@@ -41,12 +41,13 @@ class NetMetrics:
         """
         # Extract the inputs of the first batch from the DataLoader, since PyTorch
         # needs an input tensor to correctly trace the model.
-        inputs, _ = next(iter(train_loader))
+        sensors, goals, _ = next(iter(train_loader))
 
         # Ensure that the inputs reside on the same device as the model
-        inputs = inputs.to(model_device)
+        sensors = sensors.to(model_device)
+        goals = goals.to(model_device)
 
-        self.writer.add_graph(model, inputs)
+        self.writer.add_graph(model, (sensors, goals))
 
     def update(self, epoch, train_loss, valid_loss, patience_lost):
         """
@@ -209,7 +210,7 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir,
     print("Device:", device)
     print("Loss function:", loss)
     print("Dropout: %s" % ('off' if dropout == 0.0 else 'on (p=%g)' % dropout))
-    torchsummary.summary(net, input_size=(4, 180))
+    torchsummary.summary(net, input_size=[[4, 180], [3, 1]])
     print()
 
     # Support objects for metrics and validation
