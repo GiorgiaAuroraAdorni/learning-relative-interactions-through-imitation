@@ -129,8 +129,32 @@ def load_network(model_dir, device='cpu'):
     model_path = os.path.join(model_dir, 'model.pt')
     net = torch.load(model_path, map_location=device)
 
+    # Convert old versions of the network to the current format
+    net = migrate_network(net)
+
     # Ensure that the network is loaded in evaluation mode by default.
     net.eval()
+
+    return net
+
+
+def migrate_network(net):
+    """
+        Support loading old versions of the networks, by migrating them to the
+        current version.
+
+    :param net: a network in a potentially old format
+    :return: network converted to the latest format
+    """
+
+    from nn.convnet import ConvNet, ConvNet_MaxPool
+
+    if isinstance(net, ConvNet) or isinstance(net, ConvNet_MaxPool):
+        if not hasattr(net, 'drop1'):
+            setattr(net, 'drop1', nn.Identity())
+
+        if not hasattr(net, 'drop2'):
+            setattr(net, 'drop2', nn.Identity())
 
     return net
 
