@@ -139,7 +139,7 @@ class OmniscientController(Controller):
         # TODO: generalize this to choose the best mode in any scenario.
         x, y = state.position
         goal_x, goal_y = state.goal_position
-        inside_goal_object = (0 <= x <= goal_x) and (abs(y - goal_y) <= 8.5)
+        inside_goal_object = False  # (0 <= x <= goal_x) and (abs(y - goal_y) <= 8.5)
 
         mode = self.BACKWARD if inside_goal_object else self.FORWARD
         reverse_lin = (1 - 2*mode)
