@@ -1,0 +1,1 @@
+python scripts/task1.py --dataset random_goal_coloured_station --goal-object coloured_station --goal-poses ring --generate-dataset --n-simulations 2000 --plots-dataset
