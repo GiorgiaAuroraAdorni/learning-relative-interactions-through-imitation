@@ -18,6 +18,16 @@ class GenerateSimulationData:
 
     @classmethod
     def generate_initial_poses(cls, mode, n_simulations):
+        """
+        Generate initial poses for the robot, expressed as:
+          * (r, theta), position in polar coordinates relative to the goal
+          * angle, orientation in world reference frame
+
+         Supported modes:
+          * "uniform", uniformly sample from a circle with center in the goal
+            and radius slightly larger than the sensor range.
+          * "demo", generate 7 fixed poses to be used in evaluation
+        """
         if mode == 'uniform':
             # Generate random polar coordinates to define the area in which the
             # marXbot can spawn, in particular theta ∈ [0, 2π] and r ∈ [0, max_range * 1.2]
@@ -53,6 +63,7 @@ class GenerateSimulationData:
             r     = [origin_r,    origin_r,  2 * origin_r, 2 * origin_r,  2 * origin_r,           200.0,           200.0]
             theta = [   np.pi, -np.pi / 12, 3 * np.pi / 4,        np.pi, 5 * np.pi / 4,      -np.pi / 4,   7 * np.pi / 8]
             angle = [     0.0,  np.pi /  2, 5 * np.pi / 4,          0.0,     np.pi / 2,      -np.pi / 6,      -np.pi / 6]
+
         else:
             raise ValueError("Unknown initial_poses mode '%s'" % mode)
 
@@ -61,15 +72,66 @@ class GenerateSimulationData:
         return initial_poses
 
     @classmethod
-    def save_initial_poses(cls, file, initial_poses):
-        np.save(file, initial_poses)
+    def generate_goal_poses(cls, mode, n_simulations):
+        """
+        Generate goal poses for the robot, expressed as:
+          * (r, theta), position in polar coordinates relative to the origin of
+            the goal object
+          * angle, orientation in world reference frame
+
+         Supported modes:
+          * "fixed", the old fixed goal in front of the goal object's arms
+          * "ring", uniformly sample from a ring with center in the origin of
+            the goal object and a min and max radius
+        """
+
+        # Radius of the goal object.
+        object_radius = 30.48
+
+        # Minimum distance between the marXbot and any object, that
+        # corresponds to the radius of the marXbot, is 8.5 cm.
+        min_distance = 8.5
+
+        if mode == 'fixed':
+            # The goal pose of the marXbot, defined with respect to the docking
+            # station reference frame, has the same y-axis of the docking station
+            # and the x-axis translated of the radius of the d_object plus a small
+            # arbitrary distance. The goal angle of the marXbot is 180 degree (π).
+
+            r = np.full(n_simulations, object_radius + min_distance)
+            theta = np.zeros(n_simulations)
+            angle = np.full(n_simulations, np.pi)
+
+        elif mode == 'ring':
+            min_radius = object_radius + min_distance
+            max_radius = 2 * min_radius
+
+            # Compensate for the higher density of points at smaller values of r. This
+            # is accomplished by uniformly sampling the square of r.
+            # Source: https://stats.stackexchange.com/a/120535
+            rmin, rmax = np.array([min_radius, max_radius]) ** 2
+            r = np.sqrt(np.random.uniform(rmin, rmax, n_simulations))
+
+            # The angle is chosen randomly in all its possible realisations
+            theta = np.random.uniform(0, 2 * np.pi, n_simulations)
+            angle = np.random.uniform(0, 2 * np.pi, n_simulations)
+        else:
+            raise ValueError("Unknown final_poses mode '%s'" % mode)
+
+        goal_poses = np.array([r, theta, angle]).T.reshape(-1, 3)
+
+        return goal_poses
 
     @classmethod
-    def load_initial_poses(cls, file):
+    def save_poses(cls, file, poses):
+        np.save(file, poses)
+
+    @classmethod
+    def load_poses(cls, file):
         return np.load(file)
 
     @classmethod
-    def generate_simulation(cls, n_simulations, controller, goal_object, model_dir, initial_poses, gui=False):
+    def generate_simulation(cls, n_simulations, controller, goal_object, model_dir, initial_poses, goal_poses, gui=False):
         """
 
         :param n_simulations:
@@ -78,6 +140,7 @@ class GenerateSimulationData:
         :param gui:
         :param model_dir:
         :param initial_poses:
+        :param goal_poses:
         """
         if controller == cls.OMNISCIENT_CONTROLLER:
             controller_factory = controllers_task1.OmniscientController
@@ -96,7 +159,7 @@ class GenerateSimulationData:
             try:
                 template = builder.create_template(run=n)
 
-                cls.init_positions(marxbot, d_object, initial_poses[n])
+                cls.init_positions(marxbot, d_object, initial_poses[n], goal_poses[n])
                 cls.run(marxbot, world, builder, template, gui)
             except Exception as e:
                 print('ERROR: ', e)
@@ -159,37 +222,44 @@ class GenerateSimulationData:
         return world, marxbot, d_object
 
     @classmethod
-    def init_positions(cls, marxbot, d_object, marxbot_rel_pose, min_distance=8.5):
+    def init_positions(cls, marxbot, d_object, initial_pose, goal_pose):
         """
         :param marxbot
         :param d_object
-        :param marxbot_rel_pose: initial pose of the marxbot, relative to the goal pose, expressed as r, theta and
-                                 angle, that is position in polar coordinates and orientation
-        :param min_distance: the minimum distance between the marXbot and any object, that correspond to the radius
-                             of the marXbot, is 8.5 cm.
+        :param initial_pose: initial pose of the marxbot, relative to the goal pose,
+                             expressed as r, theta and angle, that is position in
+                             polar coordinates and orientation.
+        :param goal_pose: goal pose of the marxbot, relative to the origin of the
+                          goal object, expressed as r, theta and angle, that is
+                          position in polar coordinates and orientation.
         """
-        # The goal pose of the marXbot, defined with respect to the docking station reference frame, has the same y-axis
-        # of the docking station and the x-axis translated of the radius of the d_object plus a small arbitrary distance.
-        # The goal angle of the marXbot is 180 degree (π).
-        increment = d_object.radius + min_distance
-        x_goal = d_object.position[0] + increment
-        y_goal = d_object.position[1] + 0
-        marxbot.goal_position = (x_goal, y_goal)
-        marxbot.goal_angle = np.pi
+        # Transform the goal pose, relative to the origin of the goal object,
+        # from polar to cartesian coordinates.
+        r, theta, angle = goal_pose
+        goal_D = Point.from_polar(r, theta)
+
+        # Transform the cartesian coordinates from the docking station to the
+        # world reference frame.
+        trasform_W_D = Transform.pose_transform(d_object.position, d_object.angle)
+        goal_W = trasform_W_D @ goal_D
 
         # Transform the initial pose, relative to the goal, from polar to cartesian coordinates
-        r, theta, angle = marxbot_rel_pose
+        r, theta, angle = initial_pose
         point_G = Point.from_polar(r, theta)
 
         # Transform the cartesian coordinates from the goal to the world reference frame
-        trasform_D_G = Transform.translate(increment, 0)
-        trasform_W_D = Transform.pose_transform(d_object.position, d_object.angle)
+        # FIXME: this uses the old fixed goal pose, so that the code generates the
+        #        same initial positions as before
+        trasform_D_G = Transform.translate(d_object.radius + 8.5, 0)
         point_W = trasform_W_D @ trasform_D_G @ point_G
 
-        marxbot.initial_position = tuple(Point.to_euclidean(point_W))
-        marxbot.position = marxbot.initial_position
+        marxbot.goal_position = tuple(Point.to_euclidean(goal_W))
+        marxbot.goal_angle = angle
 
+        marxbot.initial_position = tuple(Point.to_euclidean(point_W))
         marxbot.initial_angle = angle
+
+        marxbot.position = marxbot.initial_position
         marxbot.angle = marxbot.initial_angle
 
         marxbot.goal_reached = False

@@ -557,6 +557,39 @@ def plot_initial_positions(goal_object, runs_dir, img_dir, filename):
     save_visualisation(filename, img_dir)
 
 
+def plot_goal_positions(goal_object, runs_dir, img_dir, filename):
+    """
+    :param goal_object
+    :param runs_dir:
+    :param img_dir:
+    :param filename:
+    """
+    dataset_states, splits = load_dataset(runs_dir, load_splits=True)
+    step_states = dataset_states.where(dataset_states.step == 0, drop=True)
+
+    plt.figure(figsize=(7.8, 4.8), constrained_layout=True)
+
+    radius = 8.5
+    for i, name in enumerate(splits.split_names):
+        split_states = step_states.where(splits == i)
+        x, y = unpack(split_states.goal_position, 'axis')
+        plt.plot(x, y, 'o', label=name, alpha=0.1, markersize=(radius * np.pi) / 2, markeredgecolor='none')
+
+    ax = plt.gca()
+
+    draw_docking_station(ax, goal_object)
+
+    ax.set_ylim(-220, 220)
+    ax.set_xlim(-250, 250)
+    ax.set_aspect('equal')
+    plt.legend()
+
+    plt.xlabel('x axis', fontsize=11)
+    plt.ylabel('y axis', fontsize=11)
+
+    save_visualisation(filename, img_dir)
+
+
 def plot_positions_heatmap(goal_object, runs_dir, img_dir, filename):
     """
 
