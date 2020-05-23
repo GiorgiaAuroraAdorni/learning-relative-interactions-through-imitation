@@ -83,20 +83,16 @@ if __name__ == '__main__':
 
             initial_poses_path = os.path.join(run_dir, args.initial_poses_file)
 
-            if args.initial_poses == 'load':
-                from simulations import GenerateSimulationData as sim
-
-                print("Loading initial poses from file '%s'…" % (initial_poses_path))
-                initial_poses = sim.load_initial_poses(initial_poses_path)
-            else:
-                from simulations import GenerateSimulationData as sim
-
-                print("Generating %d initial positions using method '%s'…" % (args.n_simulations, args.initial_poses))
-                initial_poses = sim.generate_initial_poses(args.initial_poses, args.n_simulations)
-                sim.save_initial_poses(initial_poses_path, initial_poses)
-
             if args.generate_dataset:
                 from simulations import GenerateSimulationData as sim
+
+                if args.initial_poses == 'load':
+                    print("Loading initial poses from file '%s'…" % (initial_poses_path))
+                    initial_poses = sim.load_initial_poses(initial_poses_path)
+                else:
+                    print("Generating %d initial positions using method '%s'…" % (args.n_simulations, args.initial_poses))
+                    initial_poses = sim.generate_initial_poses(args.initial_poses, args.n_simulations)
+                    sim.save_initial_poses(initial_poses_path, initial_poses)
 
                 print('Generating %s simulations for %s %s controller…' % (args.n_simulations, d, c))
                 dataset = sim.generate_simulation(n_simulations=args.n_simulations, controller=c,
