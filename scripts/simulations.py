@@ -103,7 +103,7 @@ class GenerateSimulationData:
             angle = np.full(n_simulations, np.pi)
 
         elif mode == 'ring':
-            min_radius = object_radius + min_distance
+            min_radius = 1.5 * object_radius + min_distance
             max_radius = 2 * min_radius
 
             # Compensate for the higher density of points at smaller values of r. This
@@ -235,8 +235,8 @@ class GenerateSimulationData:
         """
         # Transform the goal pose, relative to the origin of the goal object,
         # from polar to cartesian coordinates.
-        r, theta, angle = goal_pose
-        goal_D = Point.from_polar(r, theta)
+        goal_r, goal_theta, goal_angle = goal_pose
+        goal_D = Point.from_polar(goal_r, goal_theta)
 
         # Transform the cartesian coordinates from the docking station to the
         # world reference frame.
@@ -254,7 +254,7 @@ class GenerateSimulationData:
         point_W = trasform_W_D @ trasform_D_G @ point_G
 
         marxbot.goal_position = tuple(Point.to_euclidean(goal_W))
-        marxbot.goal_angle = angle
+        marxbot.goal_angle = goal_angle
 
         marxbot.initial_position = tuple(Point.to_euclidean(point_W))
         marxbot.initial_angle = angle
