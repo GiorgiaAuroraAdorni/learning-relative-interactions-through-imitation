@@ -78,6 +78,8 @@ def to_torch_loader(dataset, **kwargs):
     scanner_image = dataset.scanner_image
     scanner_distances = dataset.scanner_distances
     wheel_target_speeds = dataset.wheel_target_speeds
+    goal_positions = dataset.goal_position
+    goal_angles = dataset.goal_angle
 
     # Add a new 'channels' dimension to scanner_distances so it can be
     # concatenated with scanner_image
@@ -88,11 +90,15 @@ def to_torch_loader(dataset, **kwargs):
     scanner_data = xr.concat([scanner_image, scanner_distances], 'channel')
     scanner_data = scanner_data.transpose('sample', 'channel', 'scanner_angle')
 
+    goal_angles = goal_angles.expand_dims(dict(axis=['theta']), axis=-1)
+    goal_data = xr.concat([goal_positions, goal_angles], 'axis')
+
     # FIXME: maybe save directly as float32?
-    inputs = torch.as_tensor(scanner_data.data, dtype=torch.float)
+    sensors = torch.as_tensor(scanner_data.data, dtype=torch.float)
+    goals = torch.as_tensor(goal_data.data, dtype=torch.float)
     targets = torch.as_tensor(wheel_target_speeds.data, dtype=torch.float)
 
-    dataset = data.TensorDataset(inputs, targets)
+    dataset = data.TensorDataset(sensors, goals, targets)
     loader = data.DataLoader(dataset, **kwargs)
 
     return loader
@@ -105,6 +111,9 @@ def create_network(arch, dropout):
     elif arch == "convnet_maxpool":
         from nn.convnet import ConvNet_MaxPool
         return ConvNet_MaxPool(dropout)
+    elif arch == "convnet_maxpool_goal":
+        from nn.convnet import ConvNet_MaxPool_Goal
+        return ConvNet_MaxPool_Goal(dropout)
     else:
         raise ValueError("Unknown network architecture '%s'" % arch)
 
@@ -223,19 +232,19 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir,
         train_loss.reset()
 
         for batch in train_loader:
-            inputs, targets = (tensor.to(device) for tensor in batch)
+            sensors, goals, targets = (tensor.to(device) for tensor in batch)
 
             # Reset all the stored gradients
             optimizer.zero_grad()
 
             # Perform forward, backward and optimization steps
-            outputs = net(inputs)
+            outputs = net(sensors, goals)
             loss = criterion(outputs, targets)
             loss.backward()
             optimizer.step()
 
             # Accumulate metrics across batches
-            train_loss.update(loss, inputs.shape[0])
+            train_loss.update(loss, sensors.shape[0])
 
         # Perform model validation
         valid_loss = validator.validate(net)
@@ -285,12 +294,12 @@ class NetValidator:
             self.valid_loss.reset()
 
             for batch in self.valid_loader:
-                inputs, targets = (tensor.to(self.device) for tensor in batch)
+                sensors, goals, targets = (tensor.to(self.device) for tensor in batch)
 
-                outputs = net(inputs)
+                outputs = net(sensors, goals)
                 loss = self.criterion(outputs, targets)
 
-                self.valid_loss.update(loss, inputs.shape[0])
+                self.valid_loss.update(loss, sensors.shape[0])
 
         return self.valid_loss.mean
 

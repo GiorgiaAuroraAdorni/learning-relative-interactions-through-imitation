@@ -175,6 +175,8 @@ class LearnedController(Controller):
         """
         scanner_image = state.scanner_image
         scanner_distances = state.scanner_distances
+        goal_positions = state.goal_position
+        goal_angles = state.goal_angle
 
         # Add a new 'channels' dimension to scanner_distances so it can be
         # concatenated with scanner_image
@@ -185,8 +187,14 @@ class LearnedController(Controller):
         scanner_data = np.concatenate([scanner_image, scanner_distances], axis=-1)
         scanner_data = np.expand_dims(np.transpose(scanner_data), 0)
 
+        goal_angles = np.expand_dims(goal_angles, axis=-1)
+
+        goal_data = np.concatenate([goal_positions, goal_angles], axis=-1)
+        goal_data = np.expand_dims(goal_data, 0)
+
         # FIXME: maybe save directly as float32?
-        input = torch.as_tensor(scanner_data, dtype=torch.float)
+        sensors = torch.as_tensor(scanner_data, dtype=torch.float)
+        goals = torch.as_tensor(goal_data, dtype=torch.float)
 
         return input
 
@@ -199,9 +207,9 @@ class LearnedController(Controller):
         :param state
         :param dt
         """
-        input = self.input_to_tensor(state)
+        sensors, goals = self.input_to_tensor(state)
 
-        velocities = torch.squeeze(self.net(input))
+        velocities = torch.squeeze(self.net(sensors, goals))
         left_vel, right_vel = velocities.detach().tolist()
 
         return left_vel, right_vel

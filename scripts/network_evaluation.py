@@ -31,8 +31,8 @@ def get_predictions(net, valid_loader, device, loss):
 
     with torch.no_grad():
         for batch in valid_loader:
-            inputs, targets = (tensor.to(device) for tensor in batch)
-            outputs = net(inputs)
+            sensors, goals, targets = (tensor.to(device) for tensor in batch)
+            outputs = net(sensors, goals)
             loss = criterion(outputs, targets)
 
             predictions.append(outputs)
