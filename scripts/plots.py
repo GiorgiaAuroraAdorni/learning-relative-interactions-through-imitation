@@ -1,5 +1,4 @@
 import os
-import itertools
 
 import matplotlib.colors as colors
 import matplotlib.patches as mpatches
@@ -12,7 +11,7 @@ import viz
 from dataset import load_dataset
 from geometry import Point, Transform
 from kinematics import to_robot_velocities
-from utils import unpack
+from utils import unpack, check_dir
 
 
 def generate_dataset_plots(run_dir, img_dir, video_dir, goal_object):
@@ -49,7 +48,7 @@ def save_visualisation(filename, img_dir, make_space=False, axes=None):
         make_space_above(axes, topmargin=1)
 
     plt.savefig(file)
-    plt.savefig(img)
+    plt.savefig(img, dpi=300)
     plt.close()
 
 
@@ -94,7 +93,7 @@ def plot_distance_from_goal(runs_dir, img_dir, filename):
     ln, = axes[0].plot(time_steps, p_median, label='median')
     axes[0].fill_between(time_steps, p_q1, p_q2, alpha=0.2, label='interquartile range', color=ln.get_color())
     axes[0].fill_between(time_steps, p_q3, p_q4, alpha=0.1, label='interdecile range', color=ln.get_color())
-    axes[0].set_ylim(0)
+    axes[0].set_ylim(bottom=0)
 
     axes[0].legend()
     axes[0].set_title('Position', weight='bold', fontsize=12)
@@ -787,3 +786,44 @@ def plot_losses_distribution(train_losses, valid_losses, img_dir, filename):
     plt.ylabel('samples', fontsize=11)
 
     save_visualisation(filename, img_dir)
+
+
+def plot_losses_comparison(models_folder, models, labels, filename):
+    """
+
+    :param models_folder:
+    :param models: name of the models to compare
+    :param labels
+    :param filename:
+    """
+    subfolder = models[0] + '-' + models[1]
+
+    model_dir = os.path.join(models_folder, subfolder)
+    check_dir(model_dir)
+
+    model_img_dir = os.path.join(model_dir, 'images')
+    check_dir(model_img_dir)
+
+    plt.figure(figsize=(7.8, 4.8), constrained_layout=True)
+    plt.xlabel('epoch', fontsize=11)
+    plt.ylabel('loss', fontsize=11)
+
+    for idx, model in enumerate(models):
+        model_dir = os.path.join(models_folder, model)
+
+        file_metrics = os.path.join(model_dir, 'metrics.pkl')
+
+        losses = pd.read_pickle(file_metrics)
+        t_loss = losses.loc[:, 't. loss']
+        v_loss = losses.loc[:, 'v. loss']
+
+        x = np.arange(0, len(t_loss), dtype=int)
+
+        plt.plot(x, t_loss, label='%s (train loss)' % labels[idx])
+        plt.plot(x, v_loss, label='%s (validation loss)' % labels[idx])
+
+    plt.ylim(0, 150)
+    plt.legend()
+    plt.grid()
+
+    save_visualisation(filename, model_img_dir)

@@ -53,9 +53,11 @@ def parse_args():
                         help='enable dropout after fully-connected layers, optionally setting the'
                              'probability of randomly dropping neuron outputs (default: off, default probability: 0.5)')
     parser.add_argument('--train-net', action="store_true",
-                        help='train the model  (default: False)')
+                        help='train the model (default: False)')
     parser.add_argument('--evaluate-net', action="store_true",
-                        help='generate the plots regarding the model  (default: False)')
+                        help='generate the plots regarding the model (default: False)')
+    parser.add_argument('--compare-models', action="store_true",
+                        help='compare the losses of some models (default: False)')
 
     args = parser.parse_args()
 
@@ -108,6 +110,7 @@ if __name__ == '__main__':
 
                 print('Generating plots for %s %s controller…' % (d, c))
                 generate_dataset_plots(run_dir, run_img_dir, run_video_dir, args.goal_object)
+
             if args.generate_splits:
                 print('Generating splits…')
                 dataset = load_dataset(run_dir)
@@ -170,3 +173,15 @@ if __name__ == '__main__':
                     from network_evaluation import evaluate_net
                     dataset, splits = load_dataset(run_dir, load_splits=True)
                     evaluate_net(dataset, splits, model_dir, model_img_dir, metrics_path, args.loss)
+
+    if args.compare_models:
+        from plots import plot_losses_comparison
+        models = ['net_mse', 'net_maxpool_mse_dropout']
+        labels = ['Baseline', 'Maxpool + Dropout']
+
+        plot_losses_comparison(args.models_folder, models, labels, 'mse-losses-comparison')
+
+        models = ['net_maxpool_mse_dropout', 'net_maxpool_mse_dropout_rainbow']
+        labels = ['Monochromatic station', 'Polychromatic station']
+
+        plot_losses_comparison(args.models_folder, models, labels, 'colour-losses-comparison')
