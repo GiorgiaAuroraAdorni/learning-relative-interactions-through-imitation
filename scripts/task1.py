@@ -12,9 +12,9 @@ def parse_args():
                         help='run simulation using the gui (default: False)')
     parser.add_argument('--n-simulations', type=int, default=1000, metavar='N',
                         help='number of runs for each simulation (default: 1000)')
-    parser.add_argument('--initial-poses', default='uniform', choices=['uniform', 'load'],
+    parser.add_argument('--initial-poses', default='uniform', choices=['uniform', 'demo-circle', 'demo-various', 'load'],
                         help='choose how to generate the initial positions for each run, '
-                             'between uniform, demo and load (default: uniform)')
+                             'between uniform, demo-circle, demo-various and load (default: uniform)')
     parser.add_argument('--initial-poses-file', default='initial_poses.npy',
                         help='name of the file where to store/load the initial poses')
     parser.add_argument('--generate-dataset', action="store_true",
@@ -131,8 +131,10 @@ if __name__ == '__main__':
 
                     from simulations import GenerateSimulationData as sim
                     from plots import plot_demo_trajectories
-                    n_runs = 7
-                    initial_poses = sim.generate_initial_poses('demo', n_runs)
+
+                    # Generate demo-circle trajectories
+                    n_runs = 10
+                    initial_poses = sim.generate_initial_poses('demo-circle', n_runs)
                     generate_args = dict(
                         initial_poses=initial_poses,
                         n_simulations=n_runs,
@@ -141,7 +143,26 @@ if __name__ == '__main__':
                     )
                     omniscient_ds = sim.generate_simulation(controller='omniscient', **generate_args)
                     learned_ds = sim.generate_simulation(controller='learned', **generate_args)
-                    plot_demo_trajectories(omniscient_ds, learned_ds, args.goal_object, model_video_dir, 'demo-trajectories')
+                    plot_demo_trajectories(
+                        omniscient_ds, learned_ds, args.goal_object,
+                        model_video_dir, 'demo-circle-trajectories'
+                    )
+
+                    # Generate demo-various trajectories
+                    n_runs = 7
+                    initial_poses = sim.generate_initial_poses('demo-various', n_runs)
+                    generate_args = dict(
+                        initial_poses=initial_poses,
+                        n_simulations=n_runs,
+                        goal_object=args.goal_object,
+                        model_dir=model_dir
+                    )
+                    omniscient_ds = sim.generate_simulation(controller='omniscient', **generate_args)
+                    learned_ds = sim.generate_simulation(controller='learned', **generate_args)
+                    plot_demo_trajectories(
+                        omniscient_ds, learned_ds, args.goal_object,
+                        model_video_dir, 'demo-various-trajectories'
+                    )
 
                     from plots import plot_initial_positions
                     plot_initial_positions(args.goal_object, run_dir, model_img_dir, 'initial-positions')

@@ -33,8 +33,20 @@ class GenerateSimulationData:
             theta = np.random.uniform(0, 2 * np.pi, n_simulations)
             angle = np.random.uniform(0, 2 * np.pi, n_simulations)
 
-        elif mode == 'demo':
-            assert n_simulations == 7, "Demo mode only supports a fixed number of simulations"
+        elif mode == 'demo-circle':
+            r = np.full(n_simulations, 200.0)
+            theta = np.linspace(0.0, 2 * np.pi, n_simulations, endpoint=False)
+            angle = np.linspace(-np.pi / 2, 3 * np.pi / 2, n_simulations, endpoint=False)
+
+            # Add a run starting from the origin
+            # origin_r = 38.98
+            #
+            # r = np.concatenate([[origin_r], r])
+            # theta = np.concatenate([[np.pi], theta])
+            # angle = np.concatenate([[0.0], angle])
+
+        elif mode == 'demo-various':
+            assert n_simulations == 7, "Mode demo-various only supports a fixed number of simulations"
 
             origin_r = 38.98
 
