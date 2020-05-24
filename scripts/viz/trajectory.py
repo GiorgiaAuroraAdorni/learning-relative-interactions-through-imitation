@@ -117,7 +117,7 @@ class _SingleTrajectoryViz:
 
         if self.show_goal:
             label = "goal" if self.show_labels else None
-            self.goal_pose = plots.draw_marxbot(ax, label=label, colour=self.goal_colour, show_range=True)
+            self.goal_pose = plots.draw_marxbot(ax, label=label, colour=self.goal_colour, show_range=False)
 
     def update(self):
         self.trajectory = np.roll(self.trajectory, -1, axis=1)

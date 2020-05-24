@@ -125,16 +125,9 @@ class OmniscientController(Controller):
 
     def _perform_control(self, state, dt):
         """
-        Move the robots using the omniscient controller by setting the target {left,right} wheel speed
-        each at the same value in order to moves the robot straight ahead.
-        The speed is computed as follow:
-            velocity = constant * self.signed_distance()
-        where the constant is set to 4 and the signed_distance is the distance between the current and the goal
-        position of the robot, along the current theta of the robot.
         :param state
         :param dt
         """
-
         # Use reverse mode between the arms of the goal object.
         # TODO: generalize this to choose the best mode in any scenario.
         x, y = state.position
@@ -196,7 +189,7 @@ class LearnedController(Controller):
         sensors = torch.as_tensor(scanner_data, dtype=torch.float)
         goals = torch.as_tensor(goal_data, dtype=torch.float)
 
-        return input
+        return sensors, goals
 
     def _perform_control(self, state, dt):
         """

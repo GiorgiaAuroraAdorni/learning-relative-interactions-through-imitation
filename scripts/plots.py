@@ -447,7 +447,7 @@ def plot_demo_trajectories(omniscient_ds, learned_ds, goal_object, video_dir, fi
     learned_bots = [viz.DatasetSource(run) for (run_id, run) in learned_ds.groupby('run')]
     trajectory_args = dict(
         goal_object=goal_object,
-        show_goals='first',
+        show_goals=True,
     )
 
     # Create the visualizations

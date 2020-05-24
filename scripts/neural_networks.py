@@ -210,7 +210,7 @@ def train_net(dataset, splits, model_dir, metrics_path, tboard_dir,
     print("Device:", device)
     print("Loss function:", loss)
     print("Dropout: %s" % ('off' if dropout == 0.0 else 'on (p=%g)' % dropout))
-    torchsummary.summary(net, input_size=[[4, 180], [3, 1]])
+    # torchsummary.summary(net, input_size=[[4, 180], [3]])
     print()
 
     # Support objects for metrics and validation

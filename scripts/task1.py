@@ -149,7 +149,7 @@ if __name__ == '__main__':
                     # Generate demo-circle trajectories
                     n_runs = 10
                     initial_poses = sim.generate_initial_poses('demo-circle', n_runs)
-                    goal_poses = sim.generate_goal_poses('fixed', n_runs)
+                    goal_poses = sim.generate_goal_poses('ring', n_runs)
                     generate_args = dict(
                         initial_poses=initial_poses,
                         goal_poses=goal_poses,
@@ -167,7 +167,7 @@ if __name__ == '__main__':
                     # Generate demo-various trajectories
                     n_runs = 7
                     initial_poses = sim.generate_initial_poses('demo-various', n_runs)
-                    goal_poses = sim.generate_goal_poses('fixed', n_runs)
+                    goal_poses = sim.generate_goal_poses('ring', n_runs)
                     generate_args = dict(
                         initial_poses=initial_poses,
                         goal_poses=goal_poses,
