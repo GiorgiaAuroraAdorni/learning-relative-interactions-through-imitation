@@ -1,0 +1,1 @@
+python scripts/task1.py --dataset task2_coloured_station --generate-dataset --n-simulations 2000 --model task2_maxpool_mse_dropout --loss mse --controller learned --goal-poses ring --goal-object coloured_station --plots-dataset
