@@ -1,0 +1,26 @@
+
+\section{Task 2}
+
+\begin{table}[htbp]
+	\caption{Architecture of the Network for Task 2}
+	\begin{center}
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			\textbf{Layer}&\textbf{Channels} &\textbf{Kernel size} 
+			&\textbf{Stride} &\textbf{Padding}\\
+			\cline{1-5}
+			conv1  &  4 $\rightarrow$ 	32 & 5 & 2 & 2, circular \\ \hline
+			conv2  & 32 $\rightarrow$  	96 & 5 & 2 & 2, circular \\ \hline
+			mpool1 & 					   & 3	& 3 & 1, circular \\ 
+			\hline			
+			conv3  & 96 $\rightarrow$  	96 & 5 & 1 & 2, circular \\ \hline
+			fc1   &  1440 \textbf{+ 3} $\rightarrow$ 128 &  &  &  \\ \hline
+			drop1 & \multicolumn{4}{c|}{dropout with p = 0.5} \\ \hline
+			fc2   &  128 $\rightarrow$ 128 &  &  &  \\ \hline
+			 drop2 & \multicolumn{4}{c|}{ dropout with p = 0.5} \\ \hline
+			fc3 &  128 $\rightarrow$   2 &  &  &  \\ \hline
+			%\multicolumn{5}{l}{$^{\mathrm{a}}$Sample of a Table footnote.}
+		\end{tabular}
+		\label{tab: task 2}
+	\end{center}
+\end{table}

@@ -1,16 +1,36 @@
-\section{Proposed Model}
-The original dataset, that is the set of all the runs, is then shuffled and split, based on the single run, into the 
-train, the validation and the test sets. The proportions are 70\% for training and 15\% each for validation and 
-testing. In total, the training set is composed of 187000 samples.
-The network trained is a CNN,  which takes as inputs the sensor distances and the camera image readings and as output 
-produces the left and the right wheel target speeds. 
-The input size is 180x4. The model is trained for 313 epochs, until early stopping interrupts it. 
-The training set data are shuffled in each epoch, so the mini-batches (that are of size $2^14$) are generated 
-independently. 
-Adam is used as optimiser with learning rate $0.01$ and the loss function chosen is the Mean Squared Error (MSE). The 
-other parameters have their default values. 
-In the network the ReLU non-linearity is applied after every layer except the last one. 
-The structure is the following:
+\subsection{Proposed Model}
+The generated dataset is then shuffled and split, based on the single run, into 
+the train (70\%, 187'000 samples), the validation (15\%) and the test (15\%) 
+sets.
+
+Then, a \emph{Convolutional Neural Network (CNN)} is designed. This model takes 
+as inputs the sensor distances and colour data obtained from the laser scanner 
+(size: $180 \times 4$) and produces as output the left and the right wheel 
+target speeds. 
+
+One peculiarity is that we used convolutional layers with circular padding, 
+since the laser scanner returns a 360° view of the world around the robot.
+Moreover, the \emph{Rectified Linear Unit (ReLU)} activation function is 
+applied after every layer, except the last one, in order to add non-linearities 
+to the model. 
+
+The training set data are shuffled in each epoch, so the mini-batches (that are 
+of size $2^14$) are generated independently. 
+
+The model uses \emph{Adam} optimiser with with learning rate $0.001$, while the 
+other parameters have their default values. The training is interrupted using 
+\emph{early stopping} or after 500 epochs. 
+
+During the various experiments, four different architectures are evaluated:
+\begin{itemize}
+	\item \emph{Baseline network}: 3 convolutional and 3 fully-connected
+	layers (Table \ref{tab: baseline})
+	\item Baseline network plus one max pooling layer (Table \ref{tab: maxpool})
+	\item Baseline network plus dropout (Table \ref{tab: baseline} + Table 
+	\ref{tab: dropout})
+	\item Baseline network plus one max pooling layer and dropout (Table 
+	\ref{tab: maxpool} + Table \ref{tab: dropout})
+\end{itemize} 
 
 \begin{table}[htbp]
 	\caption{Architecture of the Baseline Network}
@@ -66,57 +86,7 @@ The structure is the following:
 			fc3 &  128 $\rightarrow$   2 &  &  &  \\ \hline
 			%\multicolumn{5}{l}{$^{\mathrm{a}}$Sample of a Table footnote.}
 		\end{tabular}
-		\label{tab: dropout + mpool}
+		\label{tab: dropout}
 	\end{center}
 \end{table}
 
-
-
-\begin{table}[htbp]
-	\caption{Architecture of the Network for Task 2}
-	\begin{center}
-		\begin{tabular}{|c|c|c|c|c|}
-			\hline
-			\textbf{Layer}&\textbf{Channels} &\textbf{Kernel size} &\textbf{Stride} &\textbf{Padding}\\
-			\cline{1-5}
-			conv1  &  4 $\rightarrow$ 	32 & 5 & 2 & 2, circular \\ \hline
-			conv2  & 32 $\rightarrow$  	96 & 5 & 2 & 2, circular \\ \hline
-			mpool1 & 					   & 3	& 3 & 1, circular \\ 
-			\hline			
-			conv3  & 96 $\rightarrow$  	96 & 5 & 1 & 2, circular \\ \hline
-			fc1   &  1440 \textbf{+ 3} $\rightarrow$ 128 &  &  &  \\ \hline
-			drop1 & \multicolumn{4}{c|}{dropout with p = 0.5} \\ \hline
-			fc2   &  128 $\rightarrow$ 128 &  &  &  \\ \hline
-			 drop2 & \multicolumn{4}{c|}{ dropout with p = 0.5} \\ \hline
-			fc3 &  128 $\rightarrow$   2 &  &  &  \\ \hline
-			%\multicolumn{5}{l}{$^{\mathrm{a}}$Sample of a Table footnote.}
-		\end{tabular}
-		\label{tab: task 2}
-	\end{center}
-\end{table}
-
-
-\subsection{Model performance}
-%\begin{figure}[htbp]
-%	\centerline{\includegraphics[width=.5\textwidth]{../models/net6/images/initial-positions.pdf}}
-%	\caption{Initial positions divided by belonging dataset.}
-%	\label{fig:initial-positions}
-%\end{figure}
-%
-%\begin{figure}[htbp]
-%	\centerline{\includegraphics[width=.5\textwidth]{../models/net6/images/loss.pdf}}
-%	\caption{Comparison of the losses among the train and validation sets.}
-%	\label{fig:loss}
-%\end{figure}
-%
-%\begin{figure}[htbp]
-%	\centerline{\includegraphics[width=.5\textwidth]{../models/net6/images/distribution-target.pdf}}
-%	\caption{Comparison of the distributions of groundtruth and prediction of the validation set.}
-%	\label{fig:distribution-target}
-%\end{figure}
-%
-%\begin{figure}[htbp]
-%	\centerline{\includegraphics[width=.5\textwidth]{../models/net6/images/regression.pdf}}
-%	\caption{Comparison of the $R^2$regressor between groundtruth and prediction of the validation set.}
-%	\label{fig:regression}
-%\end{figure}
