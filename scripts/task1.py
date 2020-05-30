@@ -12,9 +12,9 @@ def parse_args():
                         help='run simulation using the gui (default: False)')
     parser.add_argument('--n-simulations', type=int, default=1000, metavar='N',
                         help='number of runs for each simulation (default: 1000)')
-    parser.add_argument('--initial-poses', default='uniform', choices=['uniform', 'demo-circle', 'demo-various', 'load'],
+    parser.add_argument('--initial-poses', default='uniform', choices=['uniform', 'uniform-radius', 'demo-circle', 'demo-various', 'load'],
                         help='choose how to generate the initial positions for each run, '
-                             'between uniform, demo-circle, demo-various and load (default: uniform)')
+                             'between uniform, uniform-radius, demo-circle, demo-various and load (default: uniform)')
     parser.add_argument('--initial-poses-file', default='initial_poses.npy',
                         help='name of the file where to store/load the initial poses')
     parser.add_argument('--generate-dataset', action="store_true",

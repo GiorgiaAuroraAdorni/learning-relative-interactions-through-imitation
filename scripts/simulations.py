@@ -35,7 +35,7 @@ class GenerateSimulationData:
             theta = np.random.uniform(0, 2 * np.pi, n_simulations)
             angle = np.random.uniform(0, 2 * np.pi, n_simulations)
         
-        elif mode == 'uniform_radius':
+        elif mode == 'uniform-radius':
             # Generate poses with uniform radius, which results in a higher density toward
             # the center.
             rmin, rmax = np.array([0, max_range * 1.2])
