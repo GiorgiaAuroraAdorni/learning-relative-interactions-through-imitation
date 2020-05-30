@@ -1,0 +1,8 @@
+\section{Controller}
+
+\subsection{The omniscient controller}
+
+The robot is moved following an optimal “omniscient” controller \cite{park2011smooth}. This controller has complete 
+knowledge of the environment. Using the known poses of the robot and of the target object, the omniscient control moves 
+the robot to the goal pose, as fast as possible. In particular, the controller checks if the euclidean distance from 
+the goal is less than 1mm and if the robot orientation is less than 0.5 degrees from the goal orientation.

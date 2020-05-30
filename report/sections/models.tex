@@ -1,0 +1,122 @@
+\section{Proposed Model}
+The original dataset, that is the set of all the runs, is then shuffled and split, based on the single run, into the 
+train, the validation and the test sets. The proportions are 70\% for training and 15\% each for validation and 
+testing. In total, the training set is composed of 187000 samples.
+The network trained is a CNN,  which takes as inputs the sensor distances and the camera image readings and as output 
+produces the left and the right wheel target speeds. 
+The input size is 180x4. The model is trained for 313 epochs, until early stopping interrupts it. 
+The training set data are shuffled in each epoch, so the mini-batches (that are of size $2^14$) are generated 
+independently. 
+Adam is used as optimiser with learning rate $0.01$ and the loss function chosen is the Mean Squared Error (MSE). The 
+other parameters have their default values. 
+In the network the ReLU non-linearity is applied after every layer except the last one. 
+The structure is the following:
+
+\begin{table}[htbp]
+	\caption{Architecture of the Baseline Network}
+	\begin{center}
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			\textbf{Layer}&\textbf{Channels} &\textbf{Kernel size} &\textbf{Stride} &\textbf{Padding}\\
+			\cline{1-5}
+			conv1 &  4 $\rightarrow$ 16 & 5 & 2 & 2, circular \\ \hline
+			conv2 & 16 $\rightarrow$ 32 & 5 & 2 & 2, circular \\ \hline
+			conv3 & 32 $\rightarrow$  			 32 & 5 & 1 & 2, circular \\ \hline
+			fc1 &   45 $\times$ 32 $\rightarrow$ 128 &  &  &  \\ \hline
+			fc2 &  128 $\rightarrow$ 128 &  &  &  \\ \hline
+			fc3 &  128 $\rightarrow$   2 &  &  &  \\ \hline
+		\end{tabular}
+		\label{tab: baseline}
+	\end{center}
+\end{table}
+
+\begin{table}[htbp]
+	\caption{Architecture of the Network with Max Pooling}
+	\begin{center}
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			\textbf{Layer}&\textbf{Channels} &\textbf{Kernel size} &\textbf{Stride} &\textbf{Padding}\\
+			\cline{1-5}
+			conv1  &   4 $\rightarrow$  \bfseries	32 & 5 & 2 & 2, circular \\ \hline
+			conv2  & \bfseries 32 $\rightarrow$  	96 & 5 & 2 & 2, circular \\ \hline
+			\bfseries mpool1 & 					   & \bfseries 3	& \bfseries 3 & \bfseries 1, circular \\ 
+			\hline			
+			conv3  & \bfseries 96 $\rightarrow$  	96 & 5 & 1 & 2, circular \\ \hline
+			fc1    & 15 $\times$ 96 $\rightarrow$ 128 &  &  &  \\ \hline
+			fc2    & 128 $\rightarrow$ 128 &  &  &  \\ \hline
+			fc3    & 128 $\rightarrow$   2 &  &  &  \\ \hline
+			%\multicolumn{5}{l}{$^{\mathrm{a}}$Sample of a Table footnote.}
+		\end{tabular}
+		\label{tab: maxpool}
+	\end{center}
+\end{table}
+
+\begin{table}[htbp]
+	\caption{Architecture of the Network with Dropout}
+	\begin{center}
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			\textbf{Layer}&\textbf{Channels} &\textbf{Kernel size} &\textbf{Stride} &\textbf{Padding}\\
+			\cline{1-5}
+			\multicolumn{5}{|c|}{...} \\ \hline
+			fc1 &  1440 $\rightarrow$ 128 &  &  &  \\ \hline
+			\bfseries drop1 & \multicolumn{4}{c|}{\bfseries dropout with p = 0.5} \\ \hline
+			fc2 &  128 $\rightarrow$ 128 &  &  &  \\ \hline
+			\bfseries drop2 & \multicolumn{4}{c|}{\bfseries dropout with p = 0.5} \\ \hline
+			fc3 &  128 $\rightarrow$   2 &  &  &  \\ \hline
+			%\multicolumn{5}{l}{$^{\mathrm{a}}$Sample of a Table footnote.}
+		\end{tabular}
+		\label{tab: dropout + mpool}
+	\end{center}
+\end{table}
+
+
+
+\begin{table}[htbp]
+	\caption{Architecture of the Network for Task 2}
+	\begin{center}
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			\textbf{Layer}&\textbf{Channels} &\textbf{Kernel size} &\textbf{Stride} &\textbf{Padding}\\
+			\cline{1-5}
+			conv1  &  4 $\rightarrow$ 	32 & 5 & 2 & 2, circular \\ \hline
+			conv2  & 32 $\rightarrow$  	96 & 5 & 2 & 2, circular \\ \hline
+			mpool1 & 					   & 3	& 3 & 1, circular \\ 
+			\hline			
+			conv3  & 96 $\rightarrow$  	96 & 5 & 1 & 2, circular \\ \hline
+			fc1   &  1440 \textbf{+ 3} $\rightarrow$ 128 &  &  &  \\ \hline
+			drop1 & \multicolumn{4}{c|}{dropout with p = 0.5} \\ \hline
+			fc2   &  128 $\rightarrow$ 128 &  &  &  \\ \hline
+			 drop2 & \multicolumn{4}{c|}{ dropout with p = 0.5} \\ \hline
+			fc3 &  128 $\rightarrow$   2 &  &  &  \\ \hline
+			%\multicolumn{5}{l}{$^{\mathrm{a}}$Sample of a Table footnote.}
+		\end{tabular}
+		\label{tab: task 2}
+	\end{center}
+\end{table}
+
+
+\subsection{Model performance}
+%\begin{figure}[htbp]
+%	\centerline{\includegraphics[width=.5\textwidth]{../models/net6/images/initial-positions.pdf}}
+%	\caption{Initial positions divided by belonging dataset.}
+%	\label{fig:initial-positions}
+%\end{figure}
+%
+%\begin{figure}[htbp]
+%	\centerline{\includegraphics[width=.5\textwidth]{../models/net6/images/loss.pdf}}
+%	\caption{Comparison of the losses among the train and validation sets.}
+%	\label{fig:loss}
+%\end{figure}
+%
+%\begin{figure}[htbp]
+%	\centerline{\includegraphics[width=.5\textwidth]{../models/net6/images/distribution-target.pdf}}
+%	\caption{Comparison of the distributions of groundtruth and prediction of the validation set.}
+%	\label{fig:distribution-target}
+%\end{figure}
+%
+%\begin{figure}[htbp]
+%	\centerline{\includegraphics[width=.5\textwidth]{../models/net6/images/regression.pdf}}
+%	\caption{Comparison of the $R^2$regressor between groundtruth and prediction of the validation set.}
+%	\label{fig:regression}
+%\end{figure}

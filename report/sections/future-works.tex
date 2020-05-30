@@ -1,0 +1,34 @@
+\section{Future works/Problems/Solutions}
+Even if, after 15-20 epochs the train and validation MSE settles around 40 and does not decrease much afterwards, the 
+network seems to be learning. Instead, the dataset can be improved since the network is not able to generalise in such 
+cases in which the robot is close to the object or within his arms. This is in fact because of the omniscient 
+controller that never gets the robot so near the object, and for the network this is an unseen situation for the 
+network.
+A solution could be to add some runs in the dataset to explore some peculiar cases where the initial position of the 
+robot is near the object or the target position.
+Another improvement could be to use different shapes for the object, so that the behaviour that the network should 
+learn, that is understanding where the shape entrance is, will be clearer.
+%
+%\subsection{Abbreviations and Acronyms}\label{AA}
+%ReLU
+%CNN
+%Mean Squared Error (MSE)
+%
+%
+%\subsection{Equations}
+%
+%\begin{equation}
+%a+b=\gamma\label{eq}
+%\end{equation}
+%
+%Use ``\eqref{eq}'' in the middle of the sentence or ``Equation \eqref{eq} is . . .'' at the beginning of a sentence. 
+%Use (e.g., \verb|\eqref{Eq}|) cross references.
+%
+%\subsection{Figures and Tables}
+%\paragraph{Positioning Figures and Tables} Place figures and tables at the top and 
+%bottom of columns. Avoid placing them in the middle of columns. Large 
+%figures and tables may span across both columns. Figure captions should be 
+%below the figures; table heads should appear above the tables. Insert 
+%figures and tables after they are cited in the text. Use the abbreviation 
+%``Fig.~\ref{fig}'', even at the beginning of a sentence.
+%

@@ -1,0 +1,63 @@
+\section{Data Generation Through Enki Simulations}
+Using Enki, a dataset containing 2000 simulation runs is generated. Each run differs in the initial position of the 
+robot. In particular, each of these sets up a world with:
+\begin{itemize}
+	\item a horseshoe-shaped object, that represents a hypothetical docking station, always in the pose $(x=0, y=0, 
+	\theta=0)$
+	\item a marXbot, positioned randomly around the object, up to a maximum distance. The goal pose is in front of the 
+	two arms of the object.
+\end{itemize}
+
+The dataset records the run as sequence of time-steps containing the following information: 
+\begin{itemize}
+	\item run
+	\item step
+	\item name
+	\item initial position (axis: x, y) 
+	\item initial angle
+	\item goal position (axis: x, y)
+	\item goal angle
+	\item position (axis: x, y) 
+	\item angle
+	\item wheel target speeds (wheel: l, r)
+	\item scanner distances (scanner angle), 
+	\item scanner image": (scanner angle, channel: r, g, b), 
+	\item goal reached 
+	\item goal position distance
+	\item goal angle distance
+\end{itemize}
+The run is stopped if the robot reaches the target or, in any case, after 20 seconds, that means that each run can 
+contain a maximum of 200 time-steps.
+
+\subsection{Dataset visualisations}
+%\begin{figure}[htbp]
+%	\centerline{\includegraphics[width=.5\textwidth]{../datasets/omniscient/images/10-robot-trajectories.pdf}}
+%	\caption{Trajectories of ten randomly selected runs.}
+%	\label{fig:trajectories-omniscient}
+%\end{figure}
+%
+%\begin{figure}[htbp]
+%	\centerline{\includegraphics[width=.5\textwidth]{../datasets/omniscient/images/positions-heatmap.pdf}}
+%	\caption{Density of samples in each location.}
+%	\label{fig:densisy-omniscient}
+%\end{figure}
+%
+%\begin{figure}[htbp]
+%	\centerline{\includegraphics[width=.5\textwidth]{../datasets/omniscient/images/distances-from-goal.pdf}}
+%	\caption{Distance from goal over time.}
+%	\label{fig:distance-from-goal-omniscient}
+%\end{figure}
+%
+%\begin{figure}[htbp]
+%	\centerline{\includegraphics[width=.5\textwidth]{../datasets/omniscient/images/goal-reached.pdf}}
+%	\caption{Distribution of the reached goals over time.}
+%	\label{fig:goal-reached-omniscient}
+%\end{figure}
+%
+%\begin{figure}[htbp]
+%	\centerline{\includegraphics[width=.5\textwidth]{../datasets/omniscient/images/initial-final-positions.pdf}}
+%	\caption{Initial and final positions of the robot.}
+%	\label{fig:initial-final-positions-omniscient}
+%\end{figure}
+
+%Laser scanner readings and control signals over time
