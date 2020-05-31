@@ -7,9 +7,19 @@ the sensor distances and colour data obtained from the laser scanner
 target speeds. 
 
 One peculiarity is that we used convolutional layers with circular padding, 
-since the laser scanner returns a 360° view of the world around the robot. The 
+since the laser scanner returns a 360° view of the world around the robot.The 
 \emph{Rectified Linear Unit} (ReLU) activation function is applied after every 
 layer, except for the last one. 
+
+The input data are normalised by subtracting and dividing the channel-wise mean 
+and standard deviation over the training set. Furthermore, channel-wise 
+multiplicative $\alpha$ and additive $\beta$ parameters are learned during 
+training to rescale the input to the most convenient range for the network:
+\begin{IEEEeqnarray}{lL}
+	y &= (x - \mu) / \sigma \\
+	z &= \alpha y + \beta
+\end{IEEEeqnarray}
+This is implemented in the code with a \texttt{BatchNorm1d} layer.
 
 The training set data are shuffled at the beginning of each epoch, so the 
 mini-batches (that are of size $2^{14}$) are generated independently between 
