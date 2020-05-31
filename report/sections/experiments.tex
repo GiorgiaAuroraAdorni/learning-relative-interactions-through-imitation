@@ -121,11 +121,17 @@ confirming the superiority of the previous model.
 The monochromatic goal object shown so far has symmetries that make the 
 trajectory to follow ambiguous, causing the robots converge to the goal in 
 sub-optimal paths. One such path is visualised in 
-Figure~\ref{fig:demo-circle-trajectories}, in other cases we saw the controller 
-always move counter-clockwise direction or alternating depending on the 
-initial pose.
-This issue is solved in this final experiment, by using a polychromatic goal 
-object that has a different colour for each of its faces. This removes any 
+Figure~\ref{fig:demo-circle-trajectories}, in other cases we saw the learned 
+controller always moving counter-clockwise or alternating depending on the 
+initial pose. 
+
+In either case, the controller learns a good behaviour for the available data, 
+ultimately reaching the goal pose, albeit following a different path. This is 
+particularly interesting, considered that we only train the network to imitate 
+trajectories, with no indication of the goal.
+
+The symmetries are addressed in this final experiment, by using a polychromatic 
+goal object that has a different colour for each of its faces. This removes any 
 localisation ambiguity in the sensor readings.
 
 \begin{figure}[htbp]
