@@ -5,27 +5,28 @@ the sensor distances and colour data obtained from the laser scanner
 target speeds. 
 
 One peculiarity is that we used convolutional layers with circular padding, 
-since the laser scanner returns a 360° view of the world around the robot.
-Moreover, the \emph{Rectified Linear Unit (ReLU)} activation function is 
-applied after every layer, except the last one, in order to add non-linearities 
-to the model. 
+since the laser scanner returns a 360° view of the world around the robot. The 
+\emph{Rectified Linear Unit} (ReLU) activation function is applied after every 
+layer, except for the last one. 
 
-The training set data are shuffled in each epoch, so the mini-batches (that are 
-of size $2^{14}$) are generated independently. 
+The training set data are shuffled at the beginning of each epoch, so the 
+mini-batches (that are of size $2^{14}$) are generated independently between 
+epochs. 
 
-The model uses \emph{Adam} optimiser with with learning rate $0.001$, while the 
-other parameters have their default values. The training is interrupted using 
-\emph{early stopping} or after 500 epochs. 
+The model is trained with the \emph{Adam} optimiser and learning rate $0.001$, 
+while the other parameters have their default values. The training is 
+interrupted using \emph{early stopping}, if the validation loss doesn't improve 
+for 20 epochs, or after 500 epochs. 
 
 During the various experiments, four different architectures are evaluated:
 \begin{itemize}
 	\item \emph{Baseline network}: 3 convolutional and 3 fully-connected
-	layers (Table \ref{tab: baseline})
-	\item Baseline network plus one max pooling layer (Table \ref{tab: maxpool})
-	\item Baseline network plus dropout (Table \ref{tab: baseline} + Table 
-	\ref{tab: dropout})
-	\item Baseline network plus one max pooling layer and dropout (Table 
-	\ref{tab: maxpool} + Table \ref{tab: dropout})
+	layers (Table~\ref{tab: baseline})
+	\item Baseline network plus one max pooling layer (Table~\ref{tab: maxpool})
+	\item Baseline network plus dropout (Table~\ref{tab: baseline} + 
+	Table~\ref{tab: dropout})
+	\item Baseline network plus one max pooling layer and dropout 
+	(Table~\ref{tab: maxpool} + Table~\ref{tab: dropout})
 \end{itemize} 
 
 \begin{table}[htbp]

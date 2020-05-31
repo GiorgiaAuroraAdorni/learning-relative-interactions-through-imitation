@@ -35,12 +35,12 @@ position more precisely even if oscillating a bit.
 	\label{fig:regression-maxpool+dropout}
 \end{figure}
 
-The regression coefficients of the angular velocity, displayed in 
-Figure~\ref{fig:regression-baseline} and \ref{fig:regression-maxpool+dropout}, 
-increase from $0.54$ to $0.64$, confirming the improvement of the second model.
-A shown in Figure~\ref{fig:loss}, it shows also a lower validation loss (in 
-red) and does not overfit toward the end of training, like the baseline model 
-(in orange).
+The regression coefficient of the angular velocity, displayed in 
+Figure~\ref{fig:regression-maxpool+dropout}, increases from $0.54$ to $0.64$ 
+compared to Figure~\ref{fig:regression-baseline}, confirming the improvement of 
+the second model. As shown in Figure~\ref{fig:loss}, it shows also a lower 
+validation loss (in red) and does not overfit toward the end of training, like 
+the baseline model (in orange).
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=.8\columnwidth]{experiments/1/loss}}
@@ -49,13 +49,13 @@ red) and does not overfit toward the end of training, like the baseline model
 \end{figure}
 
 Finally, the end positions are more tightly clustered over the goal.
-Both the heatmaps in Figure~\ref{fig:heatmaps} show a tendency to rotate around 
-the object, which are caused by its symmetry. We will explore this in 
+Both heat maps in Figure~\ref{fig:heatmaps} show a tendency to rotate around 
+the object, which are caused by its symmetry. We will explore this issue in 
 Section~\ref{experiment3}.
 
 \begin{figure}[htbp]
 	\centerline{\includegraphics[width=\columnwidth]{experiments/1/heatmaps}}
-	\caption{Positions heatmaps.}
+	\caption{Positions heat maps.}
 	\label{fig:heatmaps}
 \end{figure}
 
@@ -66,7 +66,7 @@ Section~\ref{experiment3}.
 \end{figure}
 
 Even though the overall behaviour of this model is good, the main drawback is a 
-slight systematic error in the final orientation that we can see in 
+slight systematic error in the final orientation that can be seen in 
 Figure~\ref{fig:distance-from-goal-learned}.
 
 \begin{figure}[htbp]
@@ -76,13 +76,13 @@ Figure~\ref{fig:distance-from-goal-learned}.
 \end{figure}
 
 \subsubsection{Experiment 2}
-The second experiment performed compares the previous model with one with the 
-same network architecture, but that uses a second loss function, \emph{Smooth 
-L1} \cite{smoothl1}, which is less sensitive to outliers than \emph{MSE} and in 
-some cases prevents exploding gradients. It is computed using \eqref{smoothl1}
+The second experiment evaluates the performance of the same max pooling + 
+dropout model, but trained with a different loss function, \emph{Smooth 
+L1} \cite{smoothl1}, which is less sensitive to outliers than \emph{MSE} and 
+has been shown to prevent exploding gradients in some cases. It is computed as
 
 \begin{equation}
-\text{loss}(x, y) = \frac{1}{n}\sum_{i}z_i
+\text{L}(x, y) = \frac{1}{n}\sum_{i}z_i
 \label{smoothl1}
 \end{equation}
 
@@ -106,8 +106,8 @@ issue, as shown in Figure~\ref{fig:demo-trajectories}.
 	\label{fig:demo-trajectories}
 \end{figure}
 
-The regression coefficients of the angular velocity, shown in 
-Figure~\ref{fig:regression-validation}, decrease from $0.64$ to $0.58$, 
+The regression coefficient of the angular velocity, shown in 
+Figure~\ref{fig:regression-validation}, decreases from $0.64$ to $0.58$, 
 confirming the superiority of the previous model.
 
 \begin{figure}[htbp]
@@ -120,11 +120,14 @@ confirming the superiority of the previous model.
 \label{experiment3}
 
 The monochromatic goal object shown so far has symmetries that make the 
-trajectory to follow ambiguous, causing the robots converge to the goal in a 
-spiral path, as visualised in Figure~\ref{fig:demo-circle-trajectories}.
-This issue is solved in this final experiments that consists in removing any 
-ambiguity in the sensor readings by using a polychromatic goal object that has 
-different colours for each of its faces.
+trajectory to follow ambiguous, causing the robots converge to the goal in 
+sub-optimal paths. One such path is visualised in 
+Figure~\ref{fig:demo-circle-trajectories}, in other cases we saw the controller 
+always move counter-clockwise direction or alternating depending on the 
+initial pose.
+This issue is solved in this final experiment, by using a polychromatic goal 
+object that has a different colour for each of its faces. This removes any 
+localisation ambiguity in the sensor readings.
 
 \begin{figure}[htbp]
 	\centerline{\includegraphics[width=\columnwidth]{experiments/3/monochromatic-polychromatic}}
