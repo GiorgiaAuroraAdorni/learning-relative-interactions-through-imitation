@@ -14,7 +14,7 @@ Each run sets up a world containing:
 \end{itemize}
 
 A simulation run is stopped either 1 second (10 timesteps) after the robot 
-reaches the target pose*, or after 20 seconds (200 timesteps). This ensures 
+reaches the target pose, or after 20 seconds (200 timesteps). This ensures 
 enough timesteps in which the robot is stopped at the goal, improving 
 the performance of the network. The marXbot is considered at target if position 
 distance is less than 1 millimetre and orientation less than 0.5 degree.
@@ -23,8 +23,7 @@ distance is less than 1 millimetre and orientation less than 0.5 degree.
 An hypothetical simulation run results in these distribution of positions at 
 the beginning and end of each run, shown 
 in Figure \ref{fig:initial-final-positions-omniscient} and in trajectories like 
-those shown in Figure 
-\ref{fig:trajectories-omniscient}.
+those shown in Figure \ref{fig:trajectories-omniscient}.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=\columnwidth]{dataset/monochromatic-omniscient/initial-final-positions}}
