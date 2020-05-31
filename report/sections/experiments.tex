@@ -1,11 +1,9 @@
 \subsection{Experiments}
 \subsubsection{Experiment 1}
 The first experiment performed compares the different architectures using the 
-\emph{Mean Squared Error (MSE)} loss 
-function.
+\emph{Mean Squared Error (MSE)} loss function.
 The baseline model is able to reach the goal, but with little precision and 
-often colliding with the object, as shown 
-in Figure \ref{fig:baseline}.
+often colliding with the object, as shown in Figure~\ref{fig:baseline}.
 
 \begin{figure}[htbp]
 	\centerline{\includegraphics[width=\columnwidth]{experiments/1/demo-trajectories-baseline}}
@@ -19,11 +17,9 @@ in Figure \ref{fig:baseline}.
 	\label{fig:regression-baseline}
 \end{figure}
 
-
 Adding either max pooling or dropout alone does not solve the problem, but 
-combining them results in a visible 
-improvement: the robot reaches the goal position more precisely even if 
-oscillating a bit.
+combining them results in a visible improvement: the robot reaches the goal 
+position more precisely even if oscillating a bit.
 
 \begin{figure}[htbp]
 	\centerline{\includegraphics[width=\columnwidth]{experiments/1/demo-trajectories-maxpool+dropout}}
@@ -39,24 +35,23 @@ oscillating a bit.
 	\label{fig:regression-maxpool+dropout}
 \end{figure}
 
-The regression coefficients of the angular velocity, displayed in Figure 
-\ref{fig:regression-baseline} and \ref{fig:regression-maxpool+dropout}, 
+The regression coefficients of the angular velocity, displayed in 
+Figure~\ref{fig:regression-baseline} and \ref{fig:regression-maxpool+dropout}, 
 increase from $0.54$ to $0.64$, confirming the improvement of the second model.
-A shown in Figure \ref{fig:loss}, it shows also a lower validation loss (in 
+A shown in Figure~\ref{fig:loss}, it shows also a lower validation loss (in 
 red) and does not overfit toward the end of training, like the baseline model 
 (in orange).
 
 \begin{figure}[htbp]
-	
 \centerline{\includegraphics[width=.8\columnwidth]{experiments/1/loss}}
 	\caption{Comparison of the losses among train and validation sets.}
 	\label{fig:loss}
 \end{figure}
 
 Finally, the end positions are more tightly clustered over the goal.
-Both the heatmaps in Figure \ref{fig:heatmaps} show a tendency to rotate around 
-the object, which are caused by its symmetry. We will explore this in the third 
-experiment \ref{fig:final-positions}.
+Both the heatmaps in Figure~\ref{fig:heatmaps} show a tendency to rotate around 
+the object, which are caused by its symmetry. We will explore this in 
+Section~\ref{experiment3}.
 
 \begin{figure}[htbp]
 	\centerline{\includegraphics[width=\columnwidth]{experiments/1/heatmaps}}
@@ -71,8 +66,8 @@ experiment \ref{fig:final-positions}.
 \end{figure}
 
 Even though the overall behaviour of this model is good, the main drawback is a 
-slight systematic error in the final orientation that we can see in Figure 
-\ref{fig:distance-from-goal-learned}.
+slight systematic error in the final orientation that we can see in 
+Figure~\ref{fig:distance-from-goal-learned}.
 
 \begin{figure}[htbp]
 	\centerline{\includegraphics[width=\columnwidth]{experiments/1/distances-from-goal}}
@@ -103,7 +98,7 @@ z_i =
 
  
 Although it results in less precise final positions, it solves the oscillation 
-issue, as shown in Figure \ref{fig:demo-trajectories}.
+issue, as shown in Figure~\ref{fig:demo-trajectories}.
 
 \begin{figure}[htbp]
 	\centerline{\includegraphics[width=\columnwidth]{experiments/2/demo-trajectories}}
@@ -111,9 +106,9 @@ issue, as shown in Figure \ref{fig:demo-trajectories}.
 	\label{fig:demo-trajectories}
 \end{figure}
 
-The regression coefficients of the angular velocity, shown in Figure 
-\ref{fig:regression-validation}, decrease from $0.64$ to $0.58$, confirming the 
-superiority of the previous model.
+The regression coefficients of the angular velocity, shown in 
+Figure~\ref{fig:regression-validation}, decrease from $0.64$ to $0.58$, 
+confirming the superiority of the previous model.
 
 \begin{figure}[htbp]
 	\centerline{\includegraphics[width=\columnwidth]{experiments/2/regression-validation}}
@@ -122,10 +117,11 @@ superiority of the previous model.
 \end{figure}
 
 \subsubsection{Experiment 3}
+\label{experiment3}
 
 The monochromatic goal object shown so far has symmetries that make the 
 trajectory to follow ambiguous, causing the robots converge to the goal in a 
-spiral path, as visualised in Figure \ref{fig:demo-circle-trajectories}.
+spiral path, as visualised in Figure~\ref{fig:demo-circle-trajectories}.
 This issue is solved in this final experiments that consists in removing any 
 ambiguity in the sensor readings by using a polychromatic goal object that has 
 different colours for each of its faces.
@@ -140,8 +136,8 @@ different colours for each of its faces.
 The same network architecture and loss function of the first experiment are 
 used to train the the model with a polychromatic object, and result in a 
 significant improvement both in regression coefficient of the angular 
-velocities, shown in Figure \ref{fig:regression-3}, and in training and 
-validation losses (in green and red), in Figure \ref{fig:loss-3}.
+velocities, shown in Figure~\ref{fig:regression-3}, and in training and 
+validation losses (in green and red), in Figure~\ref{fig:loss-3}.
 
 \begin{figure}[htbp]
 	\centerline{\includegraphics[width=\columnwidth]{experiments/3/regression-validation}}
@@ -156,11 +152,11 @@ validation losses (in green and red), in Figure \ref{fig:loss-3}.
 	\label{fig:loss-3}
 \end{figure}
 
-Finally, Figure \ref{fig:heatmap-final-positions} shows how the end positions 
+Finally, Figure~\ref{fig:heatmap-final-positions} shows how the end positions 
 are more tightly clustered over the goal than before. Moreover, the model is 
 able to follow the optimal trajectories without rotating around the object.
 Also in terms of convergence, the robot reaches the goal more precisely, as 
-shown in Figure \ref{fig:distance-from-goal-learned3}, and sometimes even 
+shown in Figure~\ref{fig:distance-from-goal-learned3}, and sometimes even 
 faster than the omniscient controller.
 
 \begin{figure}[htbp]
