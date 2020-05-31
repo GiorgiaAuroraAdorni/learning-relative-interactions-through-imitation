@@ -1,4 +1,4 @@
-\subsection{Data Generation Through Enki Simulations}
+\subsection{Data Generation}
 Relying on Enki and on the omniscient controller, a dataset of 2000 simulation 
 runs is generated. 
 Each run sets up a world containing:
@@ -9,14 +9,14 @@ Each run sets up a world containing:
 	\item a \emph{fixed goal pose}, in front of the two arms of the object;
 	\item a \emph{marXbot}, at a random uniform position and orientation 
 	around the 
-	goal, up to a maximum distance of 2 meters --- slightly more that the range 
+	goal, up to a maximum distance of 2 m --- slightly more that the range 
 	of the distance sensors.
 \end{itemize}
 
 % FIXME: how to generate uniform positions?
 
-A simulation run is stopped either 1 second (10 timesteps) after the robot 
-reaches the target pose*, or after 20 seconds (200 timesteps). This ensures
+A simulation run is stopped either 1 s (10 time steps) after the robot 
+reaches the target pose, or after 20 s (200 time steps). This ensures
 enough timesteps in which the robot is standing still at the goal, improving
 the performance of the network. The marXbot is considered at target if the
 Euclidean distance from the goal is less than 1 mm and the robot orientation
@@ -31,14 +31,13 @@ are shown in Figure~\ref{fig:initial-final-positions-omniscient}.
 	\label{fig:initial-final-positions-omniscient}
 \end{figure}
 
-The density of samples in each position can be seen in Figure 
-\ref{fig:densisy-omniscient} while the histogram of the time needed to reach 
-the goal is shown in Figure \ref{fig:goal-reached-omniscient}. In this case, 
+The density of samples in each position can be seen in Figure~\ref{fig:densisy-omniscient} while the histogram of the time needed to reach 
+the goal is shown in Figure~\ref{fig:goal-reached-omniscient}. In this case, 
 all the runs terminate at the goal.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=.8\columnwidth]{dataset/monochromatic-omniscient/positions-heatmap}}
-	\caption{Positions heatmap.}
+	\caption{Positions heat map.}
 	\label{fig:densisy-omniscient}
 \end{figure}
 
@@ -49,10 +48,9 @@ all the runs terminate at the goal.
 \end{figure}
 
 Plotting the position and orientation errors over time shows the convergence of 
-the omniscient controller. In Figure \ref{fig:distance-from-goal-omniscient} 
-are shown the euclidean distance and the angular difference between the pose of 
-the robot and the goal pose over time. In Figure \ref{fig:pose-over-time} is 
-instead shown the pose over time.
+the omniscient controller. In Figure~\ref{fig:distance-from-goal-omniscient} 
+are shown the Euclidean distance and the angular difference between the pose of 
+the robot and the goal pose over time. Figure~\ref{fig:position-over-time} shows instead the position over time.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=\columnwidth]{dataset/monochromatic-omniscient/distances-from-goal}}
@@ -62,6 +60,6 @@ instead shown the pose over time.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=.8\columnwidth]{dataset/monochromatic-omniscient/pose-over-time}}
-	\caption{Distance from goal over time.}
-	\label{fig:pose-over-time}
+	\caption{Position in world coordinates over time.}
+	\label{fig:position-over-time}
 \end{figure}
