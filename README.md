@@ -3,19 +3,19 @@
 > Project for Robotics course @ USI 19/20.  
 See https://gitlab.com/GiorgiaAuroraAdorni/learning-relative-interactions-through-imitation for datasets, models and report.
 
-#### Contributors
+### Contributors
 
 **Giorgia Adorni** - giorgia.adorni@usi.ch  [GiorgiaAuroraAdorni](https://github.com/GiorgiaAuroraAdorni)
 
 **Elia Cereda** - elia.cereda@usi.ch  [EliaCereda](https://github.com/EliaCereda)
 
-#### Prerequisites
+### Prerequisites
 
 - Python 3
 - Enki
 - PyTorch
 
-#### Installation
+### Installation
 
 To install Enki follow the following instructions: https://jeguzzi.github.io/enki/intro.html.
 
@@ -101,6 +101,6 @@ optional arguments:
   --compare-models      compare the losses of some models (default: False)
 ```
 
-##### Tasks
+#### Tasks
 
-1. Launch file `task1.py` or `task2.py` 
+Launch file `task1.py` or `task2.py` 
