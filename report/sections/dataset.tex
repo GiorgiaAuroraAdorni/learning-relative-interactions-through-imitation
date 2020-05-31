@@ -31,9 +31,10 @@ are shown in Figure~\ref{fig:initial-final-positions-omniscient}.
 	\label{fig:initial-final-positions-omniscient}
 \end{figure}
 
-The density of samples in each position can be seen in Figure~\ref{fig:densisy-omniscient} while the histogram of the time needed to reach 
-the goal is shown in Figure~\ref{fig:goal-reached-omniscient}. In this case, 
-all the runs terminate at the goal.
+The density of samples in each position can be seen in 
+Figure~\ref{fig:densisy-omniscient} while the histogram of the time needed to 
+reach the goal is shown in Figure~\ref{fig:goal-reached-omniscient}. In this 
+case, all the runs terminate at the goal.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=.8\columnwidth]{dataset/monochromatic-omniscient/positions-heatmap}}
@@ -63,3 +64,7 @@ the robot and the goal pose over time. Figure~\ref{fig:position-over-time} shows
 	\caption{Position in world coordinates over time.}
 	\label{fig:position-over-time}
 \end{figure}
+
+Finally, the generated dataset is shuffled and split, assigning each run 
+into either the train (70\%, 187'000 samples), validation (15\%) or test (15\%) 
+sets.
