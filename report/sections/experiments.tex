@@ -1,5 +1,4 @@
-\subsection{Experiments}
-\subsubsection{Experiment 1}
+\subsection{Experiment 1}
 The first experiment performed compares the different architectures using the 
 \emph{Mean Squared Error (MSE)} loss function.
 The baseline model is able to reach the goal, but with little precision and 
@@ -75,7 +74,7 @@ Figure~\ref{fig:distance-from-goal-learned}.
 	\label{fig:distance-from-goal-learned}
 \end{figure}
 
-\subsubsection{Experiment 2}
+\subsection{Experiment 2}
 The second experiment evaluates the performance of the same max pooling + 
 dropout model, but trained with a different loss function, \emph{Smooth 
 L1} \cite{smoothl1}, which is less sensitive to outliers than \emph{MSE} and 
@@ -116,7 +115,7 @@ confirming the superiority of the previous model.
 	\label{fig:regression-validation}
 \end{figure}
 
-\subsubsection{Experiment 3}
+\subsection{Experiment 3}
 \label{experiment3}
 
 The monochromatic goal object shown so far has symmetries that make the 
@@ -149,7 +148,6 @@ validation losses (in green and red), in Figure~\ref{fig:loss-3}.
 \end{figure}
 
 \begin{figure}[htbp]
-	
 	\centerline{\includegraphics[width=.8\columnwidth]{experiments/3/loss}}
 	\caption{Comparison of the losses among train and validation sets.}
 	\label{fig:loss-3}

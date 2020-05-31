@@ -1,4 +1,20 @@
 \section{Task 2}
+As an additional task, we experimented with arbitrary goal poses relative to a 
+certain object. 
+
+To this end, we first generated a dataset with the same omniscient controller 
+as before, but with random goal poses located in a ring around the object, as 
+shown in Figure~\ref{fig:goal-positions}.
+
+\begin{figure}[htbp]
+	\centerline{\includegraphics[width=.8\columnwidth]{task2/goal-positions}}
+	\caption{Goal positions.}
+	\label{fig:goal-positions}
+\end{figure}
+
+Then, we implemented a neural network which receives the desired goal pose as 
+input to the first fully-connected layer. The architecture used is shown in 
+Table~\ref{tab: task 2}.
 
 \begin{table}[htbp]
 	\caption{Architecture of the Network for Task 2}
@@ -23,3 +39,38 @@
 		\label{tab: task 2}
 	\end{center}
 \end{table}
+
+From the plots shown in Figures~\ref{fig:positions-heatmap-2} and 
+\ref{fig:goal-reached-2} we can see that the unchanged omniscient controller is 
+not perfectly suited for this task: while it was possible to skip collision 
+avoidance before, here it results in many runs getting stuck on the object.
+
+\begin{figure}[htbp]
+	\centerline{\includegraphics[width=.8\columnwidth]{task2/positions-heatmap}}
+	\caption{Positions heatmap.}
+	\label{fig:positions-heatmap-2}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centerline{\includegraphics[width=.8\columnwidth]{task2/goal-reached}}
+	\caption{Time to reach the goal.}
+	\label{fig:goal-reached-2}
+\end{figure}
+
+The distances from goal, in Figure~\ref{fig:distances-from-goal-2}, confirm 
+this issue, but in general the performance is good when there are no collisions.
+
+\begin{figure}[htbp]
+	\centerline{\includegraphics[width=\columnwidth]{task2/distances-from-goal}}
+	\caption{Distance from goal.}
+	\label{fig:distances-from-goal-2}
+\end{figure}
+
+This results in trajectories like those shown in 
+Figure~\ref{fig:demo-circle-trajectories-2}.
+
+\begin{figure}[htbp]
+	\centerline{\includegraphics[width=\columnwidth]{task2/demo-circle-trajectories}}
+	\caption{Trajectories of the controller learned.}
+	\label{fig:demo-circle-trajectories-2}
+\end{figure}
