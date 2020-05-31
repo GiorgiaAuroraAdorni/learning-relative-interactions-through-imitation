@@ -1,7 +1,7 @@
 # learning-relative-interactions-through-imitation
 
 > Project for Robotics course @ USI 19/20.  
-See https://gitlab.com/GiorgiaAuroraAdorni/learning-relative-interactions-through-imitation and https://drive.google.com/drive/folders/1J0SKQ7mXedDJUBa_mRUZPTQXVFbu7CAH?usp=sharing for datasets, models and report.
+See https://gitlab.com/GiorgiaAuroraAdorni/learning-relative-interactions-through-imitation and https://drive.google.com/drive/folders/1J0SKQ7mXedDJUBa_mRUZPTQXVFbu7CAH?usp=sharing for datasets and models.
 
 ### Contributors
 
