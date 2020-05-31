@@ -5,10 +5,17 @@ of the environment, but become more challenging when the environment is only
 partially observable using a robot's sensors. Imitation learning deals with 
 this problem by recording the trajectories of an omniscient controller 
 performing the desired task, then training a machine learning model to 
-replicate them using just the data from the sensors. As such, the machine 
-learning model must learn how to extract the relevant information from the data 
-it receives, sidestepping the difficulty of implementing the perception part 
-manually.
+replicate them using just the data from the sensors. 
+
+As such, the machine learning model must learn how to extract the relevant 
+information from the data it receives, sidestepping the difficulty of 
+implementing the perception part manually.
+
+\begin{figure}[htbp]
+	\centerline{\includegraphics[width=.8\columnwidth]{introduction/marxbot}}
+	\caption{Actual image and exploded CAD view of a marXbot.}
+	\label{fig:marxbot}
+\end{figure}
 
 The target platform we choose for our project is the 
 marXbot~\cite{bonani2010marxbot}, a research robot originally designed to study 
@@ -21,24 +28,15 @@ simulator for planar robots, which provides collision detection and limited
 physics support for robots evolving on a flat surface. Moreover, it can 
 simulate groups of robots hundreds of times faster than real-time.
 
-\begin{figure}[htbp]
-	\centerline{\includegraphics[width=.8\columnwidth]{introduction/marxbot}}
-	\caption{Actual image and exploded CAD view of a marXbot.}
-	\label{fig:marxbot}
-\end{figure}
+We explore the symbolic task of moving the robot to a specific pose with 
+respect a certain object. While easy to accomplish when the exact poses of the 
+robot and the goal object are known, it becomes non-trivial when only sensor 
+data is available. In particular, the model must learn to extract 
+characteristic features of the object surface that allow it to determine its 
+pose. Furthermore, in our case the task is complicated by inherent ambiguities 
+due to the symmetry of the chosen object. Sections~\ref{sec:controllers} and 
+\ref{sec:task1} explore these aspects, how we dealt with them and the results 
+we obtained from the experiments.
 
-The task that we 
-
-%The main objective of this project is learning to perform specific 
-%interactions between the robot and objects in the 
-%environment.
-%Write an omniscient controller that performs the desired interaction with 
-%complete knowledge of the environment (e.g. 
-%position the robot at a certain location relative to an object) using Enki.
-%Generate a dataset of simulation runs through Enki. 
-%Through imitation learning, train an end-to-end neural network that receives 
-%as inputs the sensor distances and the 
-%camera image readings and produces commands for the motors that are the left 
-%and the right wheel target speeds.
-%Evaluate the model trained using Enki.
-% 
+In Section~\ref{sec:task2} we instead attempt to generalise our model, so that 
+the goal pose that it should reach can be arbitrary and provided as input.
