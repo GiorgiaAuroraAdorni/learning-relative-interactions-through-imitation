@@ -2,7 +2,7 @@
 # pyenki
 # PyQt5==5.14.2
 
-torch==1.13.1
+torch==2.2.0
 tensorboard==2.2.1
 torchsummary==1.5.1
 
